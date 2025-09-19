@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:PontoRefeitorio.ViewModels"
+             x:DataType="vm:MainPageViewModel"
+             x:Class="PontoRefeitorio.Views.MainPage"
+             Title="{Binding Title}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="30,10" Spacing="15">
+
+            <Label Text="Registro de Refeição" FontSize="28" FontAttributes="Bold" HorizontalOptions="Center"/>
+
+            <Frame Padding="10" BorderColor="LightGray" CornerRadius="10">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="ID do Colaborador" FontSize="16"/>
+                    <Entry Placeholder="Digite o ID ou matrícula" Text="{Binding ColaboradorId}" Keyboard="Numeric" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <Button Text="Registrar com Foto" 
+                    Command="{Binding CaptureAndRegisterCommand}" 
+                    IsEnabled="{Binding IsNotBusy}" 
+                    HorizontalOptions="Fill"
+                    HeightRequest="50"
+                    FontSize="18" />
+
+            <ActivityIndicator IsVisible="{Binding IsBusy}" IsRunning="{Binding IsBusy}" HorizontalOptions="Center" />
+
+            <Frame Padding="10" BorderColor="{Binding StatusColor}" BackgroundColor="{Binding StatusColor, Converter={StaticResource ColorToBrushConverter}, ConverterParameter='0.1'}">
+                <Label Text="{Binding StatusMessage}" TextColor="{Binding StatusColor}" HorizontalOptions="Center" FontAttributes="Bold"/>
+            </Frame>
+
+            <Image Source="{Binding CapturedImageSource}" 
+                   HeightRequest="250"
+                   Aspect="AspectFit"
+                   HorizontalOptions="Center" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
