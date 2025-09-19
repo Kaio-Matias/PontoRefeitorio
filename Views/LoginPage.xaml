@@ -2,23 +2,52 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:PontoRefeitorio.ViewModels"
-             x:DataType="vm:LoginPageViewModel"
              x:Class="PontoRefeitorio.Views.LoginPage"
-             Title="{Binding Title}"
-             Shell.NavBarIsVisible="False">
-    <ScrollView>
-        <VerticalStackLayout Padding="30,0" Spacing="20" VerticalOptions="Center">
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{StaticResource PageBackgroundColor}">
 
-            <Label Text="Ponto Refeitório" FontSize="36" FontAttributes="Bold" HorizontalOptions="Center" SemanticProperties.HeadingLevel="Level1"/>
-            <Label Text="Login do Dispositivo" FontSize="18" HorizontalOptions="Center"/>
+    <Grid RowDefinitions="Auto, *, Auto" Padding="30">
+        <Image Grid.Row="0"
+               Source="logo.png" 
+               HeightRequest="100"
+               HorizontalOptions="Center"
+               Margin="0,40,0,0"/>
 
-            <Entry Placeholder="Email" Text="{Binding Email}" Keyboard="Email" />
-            <Entry Placeholder="Senha" Text="{Binding Password}" IsPassword="True" />
+        <VerticalStackLayout Grid.Row="1" 
+                             Spacing="20" 
+                             VerticalOptions="Center">
 
-            <Button Text="Login" Command="{Binding LoginAsyncCommand}" IsEnabled="{Binding IsNotBusy}" HorizontalOptions="Fill" />
+            <Label Text="Login" 
+                   FontSize="32" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Center" 
+                   TextColor="{StaticResource PrimaryTextColor}"/>
 
-            <ActivityIndicator IsVisible="{Binding IsBusy}" IsRunning="{Binding IsBusy}" HorizontalOptions="Center" />
+            <Frame Style="{StaticResource EntryFrame}">
+                <Entry Placeholder="Email" 
+                       Text="{Binding Email}"
+                       Keyboard="Email"
+                       Style="{StaticResource EntryStyle}"/>
+            </Frame>
+
+            <Frame Style="{StaticResource EntryFrame}">
+                <Entry Placeholder="Senha" 
+                       Text="{Binding Senha}"
+                       IsPassword="True"
+                       Style="{StaticResource EntryStyle}"/>
+            </Frame>
+
+            <Button Text="ENTRAR"
+                    Command="{Binding LoginCommand}"
+                    Style="{StaticResource PrimaryButton}"/>
 
         </VerticalStackLayout>
-    </ScrollView>
+
+        <Label Grid.Row="2"
+               Text="Versão 1.0.0" 
+               HorizontalOptions="Center" 
+               VerticalOptions="End"
+               TextColor="{StaticResource SecondaryTextColor}"
+               Margin="0,0,0,10"/>
+    </Grid>
 </ContentPage>

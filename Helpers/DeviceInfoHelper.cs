@@ -1,31 +1,27 @@
-﻿namespace PontoRefeitorio.Helpers
+﻿// PontoRefeitorio/Helpers/DeviceInfoHelper.cs
+
+namespace PontoRefeitorio.Helpers
 {
     public static class DeviceInfoHelper
     {
-        private const string DeviceIdKey = "unique_device_id";
-
-        public static async Task<string> GetDeviceIdentifierAsync()
+        public static string GetDeviceIdentifier()
         {
-            try
-            {
-                string deviceId = await SecureStorage.GetAsync(DeviceIdKey);
-                if (string.IsNullOrEmpty(deviceId))
-                {
-                    deviceId = Guid.NewGuid().ToString();
-                    await SecureStorage.SetAsync(DeviceIdKey, deviceId);
-                }
-                return deviceId;
-            }
-            catch (Exception ex)
-            {
-                // Em caso de erro (ex: SecureStorage não disponível), gera um ID temporário
-                return Guid.NewGuid().ToString();
-            }
+            // Usa compilação condicional para obter o ID único de cada plataforma.
+            // Esta é a maneira correta e recomendada no .NET MAUI.
+#if ANDROID
+            return Android.Provider.Settings.Secure.GetString(Android.App.Application.Context.ContentResolver, Android.Provider.Settings.Secure.AndroidId);
+#elif IOS
+            return UIKit.UIDevice.CurrentDevice.IdentifierForVendor.ToString();
+#elif WINDOWS
+            // Para outras plataformas como Windows, um GUID funciona como um identificador único.
+            return System.Guid.NewGuid().ToString();
+#else
+            return System.Guid.NewGuid().ToString();
+#endif
         }
 
         public static string GetDeviceName()
         {
-            // Retorna um nome amigável para o dispositivo
             return $"{DeviceInfo.Current.Manufacturer} {DeviceInfo.Current.Model}";
         }
     }

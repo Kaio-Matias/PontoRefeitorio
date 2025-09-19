@@ -1,82 +1,84 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿// PontoRefeitorio/ViewModels/MainPageViewModel.cs
+
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using PontoRefeitorio.Models; // Garanta que este using está presente
 using PontoRefeitorio.Services;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace PontoRefeitorio.ViewModels
 {
     public partial class MainPageViewModel : BaseViewModel
     {
         private readonly ApiService _apiService;
+        private readonly AuthService _authService;
+        private string takenPhotoPath;
 
         [ObservableProperty]
-        string colaboradorId;
+        private string colaboradorId;
 
-        [ObservableProperty]
-        string statusMessage;
-
-        [ObservableProperty]
-        Color statusColor;
-
-        [ObservableProperty]
-        ImageSource capturedImageSource;
-
-        public MainPageViewModel(ApiService apiService)
+        public MainPageViewModel(ApiService apiService, AuthService authService)
         {
             _apiService = apiService;
-            Title = "Registrar Refeição";
-            StatusColor = Colors.Transparent;
+            _authService = authService;
         }
 
         [RelayCommand]
-        async Task CaptureAndRegisterAsync()
+        private async Task TakePhotoAsync()
         {
-            if (IsBusy) return;
-
-            if (string.IsNullOrWhiteSpace(ColaboradorId))
+            if (MediaPicker.Default.IsCaptureSupported)
             {
-                await Shell.Current.DisplayAlert("Atenção", "Por favor, digite o ID do colaborador.", "OK");
+                FileResult photo = await MediaPicker.Default.CapturePhotoAsync();
+                if (photo != null)
+                {
+                    takenPhotoPath = photo.FullPath;
+                    await Shell.Current.DisplayAlert("Sucesso", $"Foto capturada!", "OK");
+                }
+            }
+            else
+            {
+                await Shell.Current.DisplayAlert("Erro", "Captura de foto não é suportada.", "OK");
+            }
+        }
+
+        [RelayCommand]
+        private async Task RegistrarPontoAsync()
+        {
+            if (string.IsNullOrEmpty(ColaboradorId) || string.IsNullOrEmpty(takenPhotoPath))
+            {
+                await Shell.Current.DisplayAlert("Atenção", "Informe o ID e tire a foto para registrar.", "OK");
                 return;
             }
 
+            if (IsBusy) return;
+
             try
             {
-                if (!MediaPicker.Default.IsCaptureSupported)
-                {
-                    await Shell.Current.DisplayAlert("Não Suportado", "A captura de fotos não é suportada neste dispositivo.", "OK");
-                    return;
-                }
-
                 IsBusy = true;
-                StatusMessage = "Abrindo a câmera...";
-                StatusColor = Colors.Orange;
+                var token = await _authService.GetTokenAsync();
+                var response = await _apiService.RegistrarPontoAsync(token, ColaboradorId, takenPhotoPath);
 
-                FileResult photo = await MediaPicker.Default.CapturePhotoAsync();
-
-                if (photo == null)
+                // Verificando a propriedade "Sucesso"
+                if (response != null && response.Sucesso)
                 {
-                    StatusMessage = "Captura cancelada.";
-                    return;
+                    await Shell.Current.DisplayAlert("Sucesso", response.Message, "OK");
                 }
-
-                // Exibe a foto na tela
-                var stream = await photo.OpenReadAsync();
-                CapturedImageSource = ImageSource.FromStream(() => stream);
-
-                StatusMessage = "Enviando para verificação...";
-
-                var response = await _apiService.RegistrarPontoAsync(ColaboradorId, photo.FullPath);
-
-                StatusMessage = $"{response.Message} (Confiança: {response.Confidence:P2})";
-                StatusColor = Colors.Green;
+                else
+                {
+                    await Shell.Current.DisplayAlert("Falha", response?.Message ?? "Não foi possível registrar o ponto.", "OK");
+                }
             }
             catch (Exception ex)
             {
-                StatusMessage = $"Falha no registro: {ex.Message}";
-                StatusColor = Colors.Red;
+                Debug.WriteLine($"--> Erro ao registrar ponto: {ex.Message}");
+                await Shell.Current.DisplayAlert("Erro", "Ocorreu um erro inesperado.", "OK");
             }
             finally
             {
                 IsBusy = false;
+                ColaboradorId = string.Empty;
+                takenPhotoPath = null;
             }
         }
     }

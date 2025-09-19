@@ -1,4 +1,6 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿// PontoRefeitorio/ViewModels/LoginPageViewModel.cs
+
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PontoRefeitorio.Services;
 using PontoRefeitorio.Views;
@@ -7,51 +9,56 @@ namespace PontoRefeitorio.ViewModels
 {
     public partial class LoginPageViewModel : BaseViewModel
     {
-        private readonly ApiService _apiService;
         private readonly AuthService _authService;
 
         [ObservableProperty]
-        string email;
+        private string _email;
 
+        // ==================================================================
+        // INÍCIO DA CORREÇÃO
+        // ==================================================================
+        // A propriedade "Senha" que estava faltando foi adicionada.
         [ObservableProperty]
-        string password;
+        private string _senha;
+        // ==================================================================
+        // FIM DA CORREÇÃO
+        // ==================================================================
 
-        public LoginPageViewModel(ApiService apiService, AuthService authService)
+        public LoginPageViewModel(AuthService authService)
         {
-            _apiService = apiService;
             _authService = authService;
-            Title = "Login";
         }
 
         [RelayCommand]
-        async Task LoginAsync()
+        private async Task LoginAsync()
         {
-            if (IsBusy) return;
-            if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
+            if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Senha))
             {
                 await Shell.Current.DisplayAlert("Erro", "Por favor, preencha o email e a senha.", "OK");
                 return;
             }
 
+            if (IsBusy)
+                return;
+
             try
             {
                 IsBusy = true;
-                var loginResponse = await _apiService.LoginAsync(Email, Password);
-                if (!string.IsNullOrEmpty(loginResponse?.Token))
-                {
-                    await _authService.SetTokenAsync(loginResponse.Token);
+                bool success = await _authService.LoginAsync(Email, Senha);
 
-                    // Navega para a página principal após o login
+                if (success)
+                {
+                    // Navega para a página principal após o login bem-sucedido
                     await Shell.Current.GoToAsync($"//{nameof(MainPage)}");
                 }
                 else
                 {
-                    await Shell.Current.DisplayAlert("Erro", "Token não recebido. Tente novamente.", "OK");
+                    await Shell.Current.DisplayAlert("Erro de Login", "Email ou senha inválidos.", "OK");
                 }
             }
             catch (Exception ex)
             {
-                await Shell.Current.DisplayAlert("Erro de Login", ex.Message, "OK");
+                await Shell.Current.DisplayAlert("Erro", $"Ocorreu um erro ao tentar fazer login: {ex.Message}", "OK");
             }
             finally
             {

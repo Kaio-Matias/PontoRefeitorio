@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// PontoRefeitorio/Models/RegistroPontoResponse.cs
 
 namespace PontoRefeitorio.Models
 {
     public class RegistroPontoResponse
     {
-        public string? Message { get; set; }
-        public double Confidence { get; set; }
+        // A propriedade está aqui, definida corretamente.
+        public bool Sucesso { get; set; }
+        public string Message { get; set; } // Padronizando para "Message" para consistência
     }
 }

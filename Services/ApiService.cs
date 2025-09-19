@@ -1,84 +1,66 @@
-﻿using Newtonsoft.Json;
-using PontoRefeitorio.Helpers;
+﻿// PontoRefeitorio/Services/ApiService.cs
+
+using PontoRefeitorio.Models;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using PontoRefeitorio.Models;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace PontoRefeitorio.Services
 {
     public class ApiService
     {
-        private readonly HttpClient _httpClient;
-        private readonly AuthService _authService;
-        // IMPORTANTE: Substitua pela URL da sua API
-        private const string ApiBaseUrl = "https://10.1.0.51:8090/";
+        public HttpClient HttpClient { get; }
+        private const string ApiBaseUrl = "http://10.0.2.2:5114/"; // IP para emulador Android
 
-        public ApiService(AuthService authService)
+        public ApiService()
         {
-            _authService = authService;
-            _httpClient = new HttpClient { BaseAddress = new Uri(ApiBaseUrl) };
+            HttpClient = new HttpClient { BaseAddress = new Uri(ApiBaseUrl) };
         }
 
-        public async Task<LoginResponse> LoginAsync(string email, string senha)
+        public async Task<LoginResponse> LoginAsync(LoginRequest loginRequest)
         {
-            var deviceIdentifier = await DeviceInfoHelper.GetDeviceIdentifierAsync();
-            var deviceName = DeviceInfoHelper.GetDeviceName();
-
-            var request = new LoginRequest
-            {
-                Email = email,
-                Senha = senha,
-                DeviceIdentifier = deviceIdentifier,
-                NomeDispositivo = deviceName
-            };
-
-            var json = JsonConvert.SerializeObject(request);
+            var json = JsonSerializer.Serialize(loginRequest);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync("/api/auth/login", content);
-
-            var responseContent = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
+            var response = await HttpClient.PostAsync("api/auth/login", content);
+            if (response.IsSuccessStatusCode)
             {
-                // Lança uma exceção para ser tratada no ViewModel
-                throw new Exception($"Erro ao fazer login: {responseContent}");
+                var responseContent = await response.Content.ReadAsStringAsync();
+                return JsonSerializer.Deserialize<LoginResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             }
-
-            return JsonConvert.DeserializeObject<LoginResponse>(responseContent);
+            return null;
         }
 
-        public async Task<RegistroPontoResponse> RegistrarPontoAsync(string colaboradorId, string photoPath)
+        // ==================================================================
+        // INÍCIO DA CORREÇÃO
+        // ==================================================================
+        // Método para registrar o ponto que estava faltando.
+        public async Task<RegistroPontoResponse> RegistrarPontoAsync(string token, string colaboradorId, string photoPath)
         {
-            var token = await _authService.GetTokenAsync();
             if (string.IsNullOrEmpty(token))
-            {
                 throw new Exception("Usuário não autenticado.");
-            }
 
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             using var content = new MultipartFormDataContent();
-
-            // Adiciona a imagem
-            var fileStream = File.OpenRead(photoPath);
+            using var fileStream = File.OpenRead(photoPath);
             var streamContent = new StreamContent(fileStream);
             streamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
-            content.Add(streamContent, "ImageFile", Path.GetFileName(photoPath));
 
-            // Adiciona o ID do Colaborador
+            content.Add(streamContent, "ImageFile", Path.GetFileName(photoPath));
             content.Add(new StringContent(colaboradorId), "ColaboradorId");
 
-            var response = await _httpClient.PostAsync("/api/RegistroPonto/Registrar", content);
-
+            var response = await HttpClient.PostAsync("api/RegistroPonto/Registrar", content);
             var responseContent = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
-            {
                 throw new Exception($"Erro ao registrar ponto: {responseContent}");
-            }
 
-            return JsonConvert.DeserializeObject<RegistroPontoResponse>(responseContent);
+            return JsonSerializer.Deserialize<RegistroPontoResponse>(responseContent);
         }
+        // ==================================================================
+        // FIM DA CORREÇÃO
+        // ==================================================================
     }
 }
