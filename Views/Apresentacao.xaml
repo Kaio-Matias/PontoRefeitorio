@@ -8,7 +8,7 @@
     <VerticalStackLayout Padding="30" Spacing="20" VerticalOptions="Center">
 
         <!-- Logo -->
-        <Image Source="logo_valedourado.png" WidthRequest="150" HeightRequest="150" HorizontalOptions="Center"/>
+        <Image Source="logo.png" WidthRequest="150" HeightRequest="150" HorizontalOptions="Center"/>
 
         <!-- Título -->
         <Label Text="Bem vindo! ao"
@@ -40,8 +40,7 @@
                 WidthRequest="200"
                 HeightRequest="50"
                 HorizontalOptions="Center"
-                Clicked="OnProximoClicked"/>
-
+                />
         <!-- Rodapé -->
         <Label Text="Desenvolvido e mantido pela equipe de T.I Valedourado"
                FontSize="12"

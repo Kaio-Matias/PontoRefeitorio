@@ -9,11 +9,6 @@ namespace PontoRefeitorio.Views
             InitializeComponent();
         }
 
-        private async void OnProximoClicked(object sender, EventArgs e)
-        {
-            // Supondo que você tenha uma instância de LoginPageViewModel disponível
-            var viewModel = new LoginPage();
-            await Navigation.PushAsync(new LoginPage(viewModel));
-        }
+      
     }
 }
