@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="PontoRefeitorio.Views.Apresentacao"
+             Title="Apresentacao"
+             BackgroundColor="White">
+
+    <VerticalStackLayout Padding="30" Spacing="20" VerticalOptions="Center">
+
+        <!-- Logo -->
+        <Image Source="logo_valedourado.png" WidthRequest="150" HeightRequest="150" HorizontalOptions="Center"/>
+
+        <!-- Título -->
+        <Label Text="Bem vindo! ao"
+               FontSize="24"
+               FontAttributes="Bold"
+               TextColor="#DE7913"
+               HorizontalOptions="Center"/>
+
+        <Label Text="Refeições Valedourado"
+               FontSize="28"
+               FontAttributes="Bold"
+               TextColor="Black"
+               HorizontalOptions="Center"/>
+
+        <!-- Subtítulo -->
+        <Label Text="Um aplicativo pensado para o registro eficiente de refeições"
+               FontSize="16"
+               TextColor="Black"
+               HorizontalTextAlignment="Center"
+               HorizontalOptions="Center"
+               Margin="0,10,0,0"/>
+
+        <!-- Botão Próximo -->
+        <Button Text="Próximo"
+                BackgroundColor="#DE7913"
+                TextColor="White"
+                FontSize="18"
+                CornerRadius="10"
+                WidthRequest="200"
+                HeightRequest="50"
+                HorizontalOptions="Center"
+                Clicked="OnProximoClicked"/>
+
+        <!-- Rodapé -->
+        <Label Text="Desenvolvido e mantido pela equipe de T.I Valedourado"
+               FontSize="12"
+               TextColor="Gray"
+               HorizontalOptions="Center"
+               Margin="0,20,0,0"/>
+    </VerticalStackLayout>
+</ContentPage>

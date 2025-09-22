@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PontoRefeitorio.Services;
 using PontoRefeitorio.Views;
+using System.Diagnostics;
 
 namespace PontoRefeitorio.ViewModels
 {
@@ -14,15 +15,8 @@ namespace PontoRefeitorio.ViewModels
         [ObservableProperty]
         private string _email;
 
-        // ==================================================================
-        // INÍCIO DA CORREÇÃO
-        // ==================================================================
-        // A propriedade "Senha" que estava faltando foi adicionada.
         [ObservableProperty]
         private string _senha;
-        // ==================================================================
-        // FIM DA CORREÇÃO
-        // ==================================================================
 
         public LoginPageViewModel(AuthService authService)
         {
@@ -48,8 +42,7 @@ namespace PontoRefeitorio.ViewModels
 
                 if (success)
                 {
-                    // Navega para a página principal após o login bem-sucedido
-                    await Shell.Current.GoToAsync($"//{nameof(MainPage)}");
+                    await Shell.Current.GoToAsync(nameof(MainPage));
                 }
                 else
                 {
@@ -64,6 +57,13 @@ namespace PontoRefeitorio.ViewModels
             {
                 IsBusy = false;
             }
+        }
+
+        [RelayCommand]
+        private async Task BiometricsLoginAsync()
+        {
+            // A lógica para login com biometria será implementada aqui no futuro.
+            await Shell.Current.DisplayAlert("Biometria", "Funcionalidade de login com biometria ainda não implementada.", "OK");
         }
     }
 }

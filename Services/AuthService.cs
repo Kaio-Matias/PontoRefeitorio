@@ -1,30 +1,19 @@
-﻿// PontoRefeitorio/Services/AuthService.cs
-
-using PontoRefeitorio.Helpers;
+﻿using PontoRefeitorio.Helpers;
 using PontoRefeitorio.Models;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace PontoRefeitorio.Services
 {
-    public class AuthService
+    public class AuthService(ApiService apiService)
     {
-        private readonly ApiService _apiService;
+        private readonly ApiService _apiService = apiService;
         private static string _cachedToken;
-
-        public AuthService(ApiService apiService)
-        {
-            _apiService = apiService;
-        }
 
         public async Task<bool> LoginAsync(string email, string senha)
         {
             try
             {
-                // ==================================================================
-                // CORREÇÃO APLICADA AQUI
-                // ==================================================================
-                // Chamando a versão correta e síncrona do helper
                 var deviceIdentifier = DeviceInfoHelper.GetDeviceIdentifier();
                 var deviceName = DeviceInfoHelper.GetDeviceName();
 
@@ -60,7 +49,7 @@ namespace PontoRefeitorio.Services
             return Task.CompletedTask;
         }
 
-        public void Logout()
+        public static void Logout()
         {
             _cachedToken = null;
         }

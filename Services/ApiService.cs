@@ -12,7 +12,8 @@ namespace PontoRefeitorio.Services
     public class ApiService
     {
         public HttpClient HttpClient { get; }
-        private const string ApiBaseUrl = "http://10.0.2.2:5114/"; // IP para emulador Android
+        // Usando a URL correta da sua API publicada,
+        private const string ApiBaseUrl = "http://10.1.0.51:8090/";
 
         public ApiService()
         {
@@ -32,10 +33,6 @@ namespace PontoRefeitorio.Services
             return null;
         }
 
-        // ==================================================================
-        // INÍCIO DA CORREÇÃO
-        // ==================================================================
-        // Método para registrar o ponto que estava faltando.
         public async Task<RegistroPontoResponse> RegistrarPontoAsync(string token, string colaboradorId, string photoPath)
         {
             if (string.IsNullOrEmpty(token))
@@ -57,10 +54,8 @@ namespace PontoRefeitorio.Services
             if (!response.IsSuccessStatusCode)
                 throw new Exception($"Erro ao registrar ponto: {responseContent}");
 
-            return JsonSerializer.Deserialize<RegistroPontoResponse>(responseContent);
+            // Usando o System.Text.Json para deserializar
+            return JsonSerializer.Deserialize<RegistroPontoResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
-        // ==================================================================
-        // FIM DA CORREÇÃO
-        // ==================================================================
     }
 }

@@ -1,8 +1,6 @@
-﻿// PontoRefeitorio/ViewModels/MainPageViewModel.cs
-
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using PontoRefeitorio.Models; // Garanta que este using está presente
+using PontoRefeitorio.Models;
 using PontoRefeitorio.Services;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -33,7 +31,7 @@ namespace PontoRefeitorio.ViewModels
                 if (photo != null)
                 {
                     takenPhotoPath = photo.FullPath;
-                    await Shell.Current.DisplayAlert("Sucesso", $"Foto capturada!", "OK");
+                    await Shell.Current.DisplayAlert("Sucesso", "Foto capturada!", "OK");
                 }
             }
             else
@@ -57,10 +55,12 @@ namespace PontoRefeitorio.ViewModels
             {
                 IsBusy = true;
                 var token = await _authService.GetTokenAsync();
+
+                // Chamada correta com todos os parâmetros
                 var response = await _apiService.RegistrarPontoAsync(token, ColaboradorId, takenPhotoPath);
 
-                // Verificando a propriedade "Sucesso"
-                if (response != null && response.Sucesso)
+                // Verificando a propriedade correta: "Success"
+                if (response != null && response.Success)
                 {
                     await Shell.Current.DisplayAlert("Sucesso", response.Message, "OK");
                 }
