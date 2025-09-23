@@ -1,61 +1,62 @@
-﻿// PontoRefeitorio/Services/ApiService.cs
-
-using PontoRefeitorio.Models;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
+﻿using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text.Json;
-using System.Threading.Tasks;
+using PontoRefeitorio.Helpers;
+using PontoRefeitorio.Models;
 
 namespace PontoRefeitorio.Services
 {
     public class ApiService
     {
-        public HttpClient HttpClient { get; }
-        // Usando a URL correta da sua API publicada,
-        private const string ApiBaseUrl = "http://10.1.0.51:8090/";
+        private readonly HttpClient _httpClient;
+        private readonly string _baseUrl = "http://10.1.0.51:8090"; // <-- VERIFIQUE SE ESTE IP ESTÁ CORRETO
 
         public ApiService()
         {
-            HttpClient = new HttpClient { BaseAddress = new Uri(ApiBaseUrl) };
+            _httpClient = new HttpClient();
         }
 
-        public async Task<LoginResponse> LoginAsync(LoginRequest loginRequest)
+        public async Task<RegistroPontoResponse> RegistrarPonto(byte[] photoBytes)
         {
-            var json = JsonSerializer.Serialize(loginRequest);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await HttpClient.PostAsync("api/auth/login", content);
-            if (response.IsSuccessStatusCode)
-            {
-                var responseContent = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<LoginResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            }
-            return null;
-        }
-
-        public async Task<RegistroPontoResponse> RegistrarPontoAsync(string token, string colaboradorId, string photoPath)
-        {
+            var token = await SecureStorage.GetAsync("auth_token");
             if (string.IsNullOrEmpty(token))
-                throw new Exception("Usuário não autenticado.");
+            {
+                return new RegistroPontoResponse { Sucesso = false, Mensagem = "Dispositivo não autenticado." };
+            }
 
-            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            _httpClient.DefaultRequestHeaders.Remove("DeviceId"); // Limpa o header antes de adicionar
+            _httpClient.DefaultRequestHeaders.Add("DeviceId", DeviceInfoHelper.GetDeviceId());
 
+            // Usamos MultipartFormDataContent para enviar a imagem
             using var content = new MultipartFormDataContent();
-            using var fileStream = File.OpenRead(photoPath);
-            var streamContent = new StreamContent(fileStream);
-            streamContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
+            var imageContent = new ByteArrayContent(photoBytes);
+            imageContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
 
-            content.Add(streamContent, "ImageFile", Path.GetFileName(photoPath));
-            content.Add(new StringContent(colaboradorId), "ColaboradorId");
+            // O nome "file" deve ser o mesmo esperado pelo seu endpoint na API
+            content.Add(imageContent, "file", "photo.jpg");
 
-            var response = await HttpClient.PostAsync("api/RegistroPonto/Registrar", content);
-            var responseContent = await response.Content.ReadAsStringAsync();
+            var requestUrl = $"{_baseUrl}/api/reconhecimento/rosto";
 
-            if (!response.IsSuccessStatusCode)
-                throw new Exception($"Erro ao registrar ponto: {responseContent}");
+            try
+            {
+                var response = await _httpClient.PostAsync(requestUrl, content);
 
-            // Usando o System.Text.Json para deserializar
-            return JsonSerializer.Deserialize<RegistroPontoResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonResponse = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<RegistroPontoResponse>(jsonResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    return new RegistroPontoResponse { Sucesso = false, Mensagem = $"Falha na API: {response.StatusCode} - {errorContent}" };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new RegistroPontoResponse { Sucesso = false, Mensagem = $"Erro de conexão: {ex.Message}" };
+            }
         }
     }
 }

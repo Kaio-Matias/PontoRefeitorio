@@ -1,32 +1,24 @@
-﻿using PontoRefeitorio.Services;
+﻿// Arquivo: PontoRefeitorio/App.xaml.cs
 using PontoRefeitorio.Views;
 
-namespace PontoRefeitorio;
-
-public partial class App : Application
+namespace PontoRefeitorio
 {
-    private readonly AuthService _authService;
-
-    public App(AuthService authService)
+    public partial class App : Application
     {
-        InitializeComponent();
-        _authService = authService;
-        MainPage = new AppShell();
-    }
+        public App()
+        {
+            InitializeComponent();
 
-    protected override async void OnStart()
-    {
-        // Verifica se já existe um token ao iniciar o app
-        var token = await _authService.GetTokenAsync();
-        if (!string.IsNullOrEmpty(token))
-        {
-            // Se houver token, vai direto para a página principal
-            await Shell.Current.GoToAsync($"//{nameof(MainPage)}");
-        }
-        else
-        {
-            // Caso contrário, vai para a página de login
-            await Shell.Current.GoToAsync($"//{nameof(LoginPage)}");
+            // ==================================================================
+            // INÍCIO DA CORREÇÃO
+            // ==================================================================
+            // Força o aplicativo a usar o tema claro, ignorando o modo noturno.
+            UserAppTheme = AppTheme.Light;
+            // ==================================================================
+            // FIM DA CORREÇÃO
+            // ==================================================================
+
+            MainPage = new NavigationPage(new Apresentacao());
         }
     }
 }

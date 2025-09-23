@@ -1,6 +1,4 @@
-﻿// PontoRefeitorio/MauiProgram.cs
-
-using CommunityToolkit.Maui;
+﻿using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
 using PontoRefeitorio.Services;
 using PontoRefeitorio.ViewModels;
@@ -26,27 +24,20 @@ public static class MauiProgram
 #if DEBUG
         builder.Logging.AddDebug();
 #endif
-
-        // ==================================================================
-        // INÍCIO DA CORREÇÃO
-        // ==================================================================
-        // Garantindo que todos os serviços, ViewModels e Telas
-        // estejam corretamente registrados no sistema de injeção de dependência.
-
         // Services
         builder.Services.AddSingleton<AuthService>();
         builder.Services.AddSingleton<ApiService>();
 
-        // ViewModels (Transient é melhor para ViewModels de página)
-        builder.Services.AddTransient<LoginPageViewModel>();
-        builder.Services.AddTransient<MainPageViewModel>();
+        // ViewModels
+        builder.Services.AddSingleton<LoginPageViewModel>();
+        builder.Services.AddSingleton<MainPageViewModel>();
+        builder.Services.AddTransient<RegistroPageViewModel>();
 
-        // Views / Pages
-        builder.Services.AddTransient<LoginPage>();
-        builder.Services.AddTransient<MainPage>();
-        // ==================================================================
-        // FIM DA CORREÇÃO
-        // ==================================================================
+        // Pages
+        builder.Services.AddSingleton<LoginPage>();
+        builder.Services.AddTransient<MainPage>(); 
+        builder.Services.AddTransient<Apresentacao>();
+        builder.Services.AddTransient<RegistroPage>();
 
         return builder.Build();
     }

@@ -1,53 +1,96 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:vm="clr-namespace:PontoRefeitorio.ViewModels"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="PontoRefeitorio.Views.LoginPage"
-             Shell.NavBarIsVisible="False"
-             BackgroundColor="{StaticResource PageBackgroundColor}">
+             xmlns:viewmodel="clr-namespace:PontoRefeitorio.ViewModels"
+             x:DataType="viewmodel:LoginPageViewModel"
+             Shell.NavBarIsVisible="False">
 
-    <Grid RowDefinitions="Auto, *, Auto" Padding="30">
-        <Image Grid.Row="0"
-               Source="logo.png" 
-               HeightRequest="100"
-               HorizontalOptions="Center"
-               Margin="0,40,0,0"/>
+    <ContentPage.Behaviors>
+        <toolkit:StatusBarBehavior StatusBarColor="White" StatusBarStyle="DarkContent" />
+    </ContentPage.Behaviors>
 
-        <VerticalStackLayout Grid.Row="1" 
-                             Spacing="20" 
-                             VerticalOptions="Center">
+    <Grid>
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#FFFFFF" Offset="0.3" />
+                <GradientStop Color="#FFEFE0" Offset="0.4" />
+                <GradientStop Color="#DE7913" Offset="1.9" />
+            </LinearGradientBrush>
+        </Grid.Background>
 
-            <Label Text="Login" 
-                   FontSize="32" 
-                   FontAttributes="Bold" 
-                   HorizontalOptions="Center" 
-                   TextColor="{StaticResource PrimaryTextColor}"/>
+        <Grid RowDefinitions="*, Auto" Padding="30,0">
 
-            <Frame Style="{StaticResource EntryFrame}">
-                <Entry Placeholder="Email" 
-                       Text="{Binding Email}"
-                       Keyboard="Email"
-                       Style="{StaticResource EntryStyle}"/>
-            </Frame>
+            <VerticalStackLayout 
+                Grid.Row="0"
+                VerticalOptions="Center"
+                Spacing="20">
 
-            <Frame Style="{StaticResource EntryFrame}">
-                <Entry Placeholder="Senha" 
-                       Text="{Binding Senha}"
-                       IsPassword="True"
-                       Style="{StaticResource EntryStyle}"/>
-            </Frame>
+                <Image 
+                    Source="logo.png"
+                    HeightRequest="300"
+                    WidthRequest="250"
+                    HorizontalOptions="Center"
+                    Margin="0,0,0,40"/>
 
-            <Button Text="ENTRAR"
-                    Command="{Binding LoginCommand}"
-                    Style="{StaticResource PrimaryButton}"/>
+                <Frame 
+                    CornerRadius="30" 
+                    Padding="15,5,15,5" 
+                    BackgroundColor="#F0F0F0" 
+                    BorderColor="Transparent"
+                    HasShadow="False">
+                    <Entry 
+                        Text="{Binding Email}"
+                        Placeholder="Email"
+                        PlaceholderColor="Gray"
+                        TextColor="Black"
+                        Keyboard="Email"
+                        FontSize="16"
+                        VerticalOptions="Center"/>
+                </Frame>
 
-        </VerticalStackLayout>
+                <Frame 
+                    CornerRadius="30" 
+                    Padding="15,5,15,5" 
+                    BackgroundColor="#F0F0F0"
+                    BorderColor="Transparent"
+                    HasShadow="False">
+                    <Entry 
+                        Text="{Binding Senha}"
+                        Placeholder="Senha"
+                        PlaceholderColor="Gray"
+                        TextColor="Black"
+                        IsPassword="True"
+                        FontSize="16"
+                        VerticalOptions="Center"/>
+                </Frame>
 
-        <Label Grid.Row="2"
-               Text="Versão 1.0.0" 
-               HorizontalOptions="Center" 
-               VerticalOptions="End"
-               TextColor="{StaticResource SecondaryTextColor}"
-               Margin="0,0,0,10"/>
+                <Label 
+                    Text="{Binding ErrorMessage}"
+                    TextColor="Red"
+                    HorizontalOptions="Center"
+                    Margin="0,0,0,10"/>
+
+                <Button 
+                    Text="Entrar" 
+                    Command="{Binding SubmitLoginCommand}"
+                    BackgroundColor="White"
+                    TextColor="#DE7913"
+                    FontSize="18"
+                    CornerRadius="30"
+                    HeightRequest="50"
+                    Margin="80,20,80,0"/>
+            </VerticalStackLayout>
+
+            <Label 
+                Grid.Row="1"
+                Text="Desenvolvido e mantido pela equipe de T.I Valedourado"
+                FontSize="12"
+                TextColor="Black"
+                HorizontalOptions="Center"
+                Margin="0,0,0,20"/>
+        </Grid>
+
     </Grid>
 </ContentPage>

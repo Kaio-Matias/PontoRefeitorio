@@ -1,51 +1,77 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="PontoRefeitorio.Views.Apresentacao"
-             Title="Apresentacao"
-             BackgroundColor="White">
+             BackgroundColor="white" Shell.NavBarIsVisible="False">
 
-    <VerticalStackLayout Padding="30" Spacing="20" VerticalOptions="Center">
+    <ContentPage.Behaviors>
+        <toolkit:StatusBarBehavior StatusBarColor="White" StatusBarStyle="DarkContent" />
+    </ContentPage.Behaviors>
 
-        <!-- Logo -->
-        <Image Source="logo.png" WidthRequest="150" HeightRequest="150" HorizontalOptions="Center"/>
+    <Grid>
+        <VerticalStackLayout 
+            Padding="30" 
+            Spacing="15" 
+            VerticalOptions="CenterAndExpand" 
+            HorizontalOptions="Center">
 
-        <!-- Título -->
-        <Label Text="Bem vindo! ao"
-               FontSize="24"
-               FontAttributes="Bold"
-               TextColor="#DE7913"
-               HorizontalOptions="Center"/>
+            <Image 
+                Source="logo.png" HeightRequest="250"
+                WidthRequest="350"
+                Margin="0,0,0,10"/>
 
-        <Label Text="Refeições Valedourado"
-               FontSize="28"
-               FontAttributes="Bold"
-               TextColor="Black"
-               HorizontalOptions="Center"/>
+            <Label 
+                Text="Bem vindo! ao"
+                FontSize="24"
+                FontAttributes="Bold"
+                TextColor="Black" HorizontalOptions="Center"/>
 
-        <!-- Subtítulo -->
-        <Label Text="Um aplicativo pensado para o registro eficiente de refeições"
-               FontSize="16"
-               TextColor="Black"
-               HorizontalTextAlignment="Center"
-               HorizontalOptions="Center"
-               Margin="0,10,0,0"/>
+            <Label 
+                Text="Refeições Valedourado"
+                FontSize="28"
+                FontAttributes="Bold"
+                TextColor="#DE7913" HorizontalOptions="Center"/>
 
-        <!-- Botão Próximo -->
-        <Button Text="Próximo"
-                BackgroundColor="#DE7913"
-                TextColor="White"
-                FontSize="18"
-                CornerRadius="10"
-                WidthRequest="200"
-                HeightRequest="50"
-                HorizontalOptions="Center"
-                />
-        <!-- Rodapé -->
-        <Label Text="Desenvolvido e mantido pela equipe de T.I Valedourado"
-               FontSize="12"
-               TextColor="Gray"
-               HorizontalOptions="Center"
-               Margin="0,20,0,0"/>
-    </VerticalStackLayout>
+            <Label 
+                Text="Um aplicativo pensado para o registro eficiente de refeições"
+                FontSize="16"
+                TextColor="black" HorizontalOptions="Center"
+                LineBreakMode="WordWrap"
+                HorizontalTextAlignment="Center"
+                Margin="0,10,0,50"/>
+
+            <VerticalStackLayout 
+                HorizontalOptions="Center" 
+                VerticalOptions="EndAndExpand" 
+                Margin="0,150,0,0"
+                Spacing="0">
+
+                <Label 
+                    Text="Desenvolvido e mantido pela"
+                    FontSize="12"
+                    TextColor="black"
+                    HorizontalOptions="Center"/>
+
+                <Label 
+                    Text="equipe de T.I Valedourado"
+                    FontSize="12"
+                    TextColor="black"
+                    HorizontalOptions="Center"/>
+
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+
+        <Button 
+            Text="Próximo" 
+            Clicked="ProximoButton_Clicked"
+            BackgroundColor="#DE7913"
+            TextColor="White"
+            FontSize="18"
+            CornerRadius="30"
+            HeightRequest="50"
+            WidthRequest="120" HorizontalOptions="Center"
+            VerticalOptions="End" Margin="220,0,0,30"/>
+    </Grid>
 </ContentPage>

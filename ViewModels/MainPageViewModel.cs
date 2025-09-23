@@ -1,84 +1,105 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿// Arquivo: PontoRefeitorio/ViewModels/MainPageViewModel.cs
+
+using CommunityToolkit.Maui.Views;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using PontoRefeitorio.Models;
 using PontoRefeitorio.Services;
-using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace PontoRefeitorio.ViewModels
 {
-    public partial class MainPageViewModel : BaseViewModel
+    public partial class MainPageViewModel : ObservableObject
     {
         private readonly ApiService _apiService;
-        private readonly AuthService _authService;
-        private string takenPhotoPath;
+        private CameraView _cameraView;
 
         [ObservableProperty]
-        private string colaboradorId;
+        private bool _showResultOverlay;
 
-        public MainPageViewModel(ApiService apiService, AuthService authService)
+        [ObservableProperty]
+        private string _colaboradorNome;
+
+        [ObservableProperty]
+        private ImageSource _colaboradorFoto;
+
+        [ObservableProperty]
+        private string _resultMessage;
+
+        [ObservableProperty]
+        private Color _resultBackgroundColor;
+
+        [ObservableProperty]
+        private bool _isBusy;
+
+        public bool IsButtonEnabled => !IsBusy;
+
+        public MainPageViewModel(ApiService apiService)
         {
             _apiService = apiService;
-            _authService = authService;
+        }
+
+        public void InitializeCamera(CameraView cameraView)
+        {
+            _cameraView = cameraView;
         }
 
         [RelayCommand]
-        private async Task TakePhotoAsync()
+        private async Task RegistrarPonto()
         {
-            if (MediaPicker.Default.IsCaptureSupported)
-            {
-                FileResult photo = await MediaPicker.Default.CapturePhotoAsync();
-                if (photo != null)
-                {
-                    takenPhotoPath = photo.FullPath;
-                    await Shell.Current.DisplayAlert("Sucesso", "Foto capturada!", "OK");
-                }
-            }
-            else
-            {
-                await Shell.Current.DisplayAlert("Erro", "Captura de foto não é suportada.", "OK");
-            }
-        }
-
-        [RelayCommand]
-        private async Task RegistrarPontoAsync()
-        {
-            if (string.IsNullOrEmpty(ColaboradorId) || string.IsNullOrEmpty(takenPhotoPath))
-            {
-                await Shell.Current.DisplayAlert("Atenção", "Informe o ID e tire a foto para registrar.", "OK");
-                return;
-            }
-
             if (IsBusy) return;
+            IsBusy = true;
+            OnPropertyChanged(nameof(IsButtonEnabled));
 
             try
             {
-                IsBusy = true;
-                var token = await _authService.GetTokenAsync();
+                // Esta é a chamada correta que você descobriu!
+                var photoStream = await _cameraView?.CaptureAsync();
 
-                // Chamada correta com todos os parâmetros
-                var response = await _apiService.RegistrarPontoAsync(token, ColaboradorId, takenPhotoPath);
-
-                // Verificando a propriedade correta: "Success"
-                if (response != null && response.Success)
+                if (photoStream != null)
                 {
-                    await Shell.Current.DisplayAlert("Sucesso", response.Message, "OK");
+                    using var memoryStream = new MemoryStream();
+                    await photoStream.CopyToAsync(memoryStream);
+                    var photoBytes = memoryStream.ToArray();
+
+                    var response = await _apiService.RegistrarPonto(photoBytes);
+
+                    if (response != null && response.Sucesso)
+                    {
+                        ColaboradorNome = response.Nome;
+                        ColaboradorFoto = ImageSource.FromStream(() => new MemoryStream(Convert.FromBase64String(response.FotoBase64)));
+                        ResultMessage = "Bem-vindo(a)!";
+                        ResultBackgroundColor = Colors.Green;
+                    }
+                    else
+                    {
+                        ColaboradorNome = string.Empty;
+                        ColaboradorFoto = "dotnet_bot.png";
+                        ResultMessage = response?.Mensagem ?? "Rosto não reconhecido.";
+                        ResultBackgroundColor = Colors.Red;
+                    }
                 }
                 else
                 {
-                    await Shell.Current.DisplayAlert("Falha", response?.Message ?? "Não foi possível registrar o ponto.", "OK");
+                    ColaboradorNome = string.Empty;
+                    ColaboradorFoto = "dotnet_bot.png";
+                    ResultMessage = "Não foi possível capturar a foto.";
+                    ResultBackgroundColor = Colors.Red;
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"--> Erro ao registrar ponto: {ex.Message}");
-                await Shell.Current.DisplayAlert("Erro", "Ocorreu um erro inesperado.", "OK");
+                ColaboradorNome = string.Empty;
+                ColaboradorFoto = "dotnet_bot.png";
+                ResultMessage = $"Erro: {ex.Message}";
+                ResultBackgroundColor = Colors.Red;
             }
             finally
             {
+                ShowResultOverlay = true;
+                await Task.Delay(5000);
+                ShowResultOverlay = false;
+
                 IsBusy = false;
-                ColaboradorId = string.Empty;
-                takenPhotoPath = null;
+                OnPropertyChanged(nameof(IsButtonEnabled));
             }
         }
     }

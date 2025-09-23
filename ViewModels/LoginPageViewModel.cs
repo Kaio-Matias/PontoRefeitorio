@@ -1,69 +1,52 @@
-﻿// PontoRefeitorio/ViewModels/LoginPageViewModel.cs
-
+﻿// Arquivo: PontoRefeitorio/ViewModels/LoginPageViewModel.cs
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using PontoRefeitorio.Models;
 using PontoRefeitorio.Services;
-using PontoRefeitorio.Views;
-using System.Diagnostics;
 
 namespace PontoRefeitorio.ViewModels
 {
-    public partial class LoginPageViewModel : BaseViewModel
+    public partial class LoginPageViewModel : ObservableObject
     {
-        private readonly AuthService _authService;
-
         [ObservableProperty]
         private string _email;
 
         [ObservableProperty]
         private string _senha;
 
+        [ObservableProperty]
+        private string _errorMessage;
+
+        private readonly AuthService _authService;
+
+        // **RESTAURADO:**
+        // Voltamos para a injeção de dependência padrão, que é a melhor prática.
         public LoginPageViewModel(AuthService authService)
         {
             _authService = authService;
         }
 
         [RelayCommand]
-        private async Task LoginAsync()
+        private async Task SubmitLogin()
         {
             if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Senha))
             {
-                await Shell.Current.DisplayAlert("Erro", "Por favor, preencha o email e a senha.", "OK");
+                ErrorMessage = "Por favor, preencha o email e a senha.";
                 return;
             }
 
-            if (IsBusy)
-                return;
+            var loginRequest = new LoginRequest { Email = this.Email, Senha = this.Senha };
+            var response = await _authService.LoginAsync(loginRequest);
 
-            try
+            if (response != null && !string.IsNullOrEmpty(response.Token))
             {
-                IsBusy = true;
-                bool success = await _authService.LoginAsync(Email, Senha);
-
-                if (success)
-                {
-                    await Shell.Current.GoToAsync(nameof(MainPage));
-                }
-                else
-                {
-                    await Shell.Current.DisplayAlert("Erro de Login", "Email ou senha inválidos.", "OK");
-                }
+                ErrorMessage = string.Empty;
+                Application.Current.MainPage = new AppShell();
             }
-            catch (Exception ex)
+            else
             {
-                await Shell.Current.DisplayAlert("Erro", $"Ocorreu um erro ao tentar fazer login: {ex.Message}", "OK");
+                ErrorMessage = response?.Message ?? "Falha no login.";
             }
-            finally
-            {
-                IsBusy = false;
-            }
-        }
-
-        [RelayCommand]
-        private async Task BiometricsLoginAsync()
-        {
-            // A lógica para login com biometria será implementada aqui no futuro.
-            await Shell.Current.DisplayAlert("Biometria", "Funcionalidade de login com biometria ainda não implementada.", "OK");
         }
     }
 }

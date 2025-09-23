@@ -1,11 +1,14 @@
-﻿// PontoRefeitorio/Models/RegistroPontoResponse.cs
+﻿// Arquivo: PontoRefeitorio/Models/RegistroPontoResponse.cs
 
 namespace PontoRefeitorio.Models
 {
     public class RegistroPontoResponse
     {
-        // A propriedade está aqui, definida corretamente.
-        public bool Success { get; set; }
-        public string Message { get; set; } // Padronizando para "Message" para consistência
+        public bool Sucesso { get; set; }
+        public string Mensagem { get; set; }
+
+        // Propriedades que estavam faltando:
+        public string Nome { get; set; }
+        public string FotoBase64 { get; set; }
     }
 }

@@ -1,57 +1,47 @@
-﻿using PontoRefeitorio.Helpers;
+﻿// Arquivo: PontoRefeitorio/Services/AuthService.cs
+
+using System.Net.Http.Json;
+using PontoRefeitorio.Helpers;
 using PontoRefeitorio.Models;
-using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace PontoRefeitorio.Services
 {
-    public class AuthService(ApiService apiService)
+    public class AuthService
     {
-        private readonly ApiService _apiService = apiService;
-        private static string _cachedToken;
+        private readonly HttpClient _httpClient;
+        private readonly string _baseUrl = "http://10.1.0.51:8090"; // <-- VERIFIQUE SE ESTE IP ESTÁ CORRETO
 
-        public async Task<bool> LoginAsync(string email, string senha)
+        public AuthService()
         {
+            _httpClient = new HttpClient();
+        }
+
+        // Método que estava faltando:
+        public async Task<LoginResponse> LoginAsync(LoginRequest loginRequest)
+        {
+            var requestUrl = $"{_baseUrl}/api/auth/login";
+
             try
             {
-                var deviceIdentifier = DeviceInfoHelper.GetDeviceIdentifier();
-                var deviceName = DeviceInfoHelper.GetDeviceName();
+                var response = await _httpClient.PostAsJsonAsync(requestUrl, loginRequest);
 
-                var request = new LoginRequest
+                if (response.IsSuccessStatusCode)
                 {
-                    Email = email,
-                    Senha = senha,
-                    DeviceIdentifier = deviceIdentifier,
-                    NomeDispositivo = deviceName
-                };
-
-                var loginResponse = await _apiService.LoginAsync(request);
-
-                if (!string.IsNullOrEmpty(loginResponse?.Token))
-                {
-                    await SetTokenAsync(loginResponse.Token);
-                    return true;
+                    var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
+                    if (loginResponse != null && !string.IsNullOrEmpty(loginResponse.Token))
+                    {
+                        await SecureStorage.SetAsync("auth_token", loginResponse.Token);
+                        return loginResponse;
+                    }
                 }
-                return false;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Erro no login: {ex.Message}");
-                return false;
+                // Trata erro de conexão
+                return new LoginResponse { Message = $"Erro de conexão: {ex.Message}" };
             }
-        }
 
-        public Task<string> GetTokenAsync() => Task.FromResult(_cachedToken);
-
-        public Task SetTokenAsync(string token)
-        {
-            _cachedToken = token;
-            return Task.CompletedTask;
-        }
-
-        public static void Logout()
-        {
-            _cachedToken = null;
+            return new LoginResponse { Message = "Usuário ou senha inválidos." };
         }
     }
 }
