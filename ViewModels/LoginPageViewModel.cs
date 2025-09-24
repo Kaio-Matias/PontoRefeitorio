@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PontoRefeitorio.Models;
 using PontoRefeitorio.Services;
+using PontoRefeitorio.Views;
 
 namespace PontoRefeitorio.ViewModels
 {
@@ -19,8 +20,6 @@ namespace PontoRefeitorio.ViewModels
 
         private readonly AuthService _authService;
 
-        // **RESTAURADO:**
-        // Voltamos para a injeção de dependência padrão, que é a melhor prática.
         public LoginPageViewModel(AuthService authService)
         {
             _authService = authService;
@@ -41,7 +40,17 @@ namespace PontoRefeitorio.ViewModels
             if (response != null && !string.IsNullOrEmpty(response.Token))
             {
                 ErrorMessage = string.Empty;
-                Application.Current.MainPage = new AppShell();
+
+                // ==================================================================
+                // INÍCIO DA CORREÇÃO
+                // ==================================================================
+                // Navega para a página de registro de ponto como a nova página raiz.
+                // O prefixo "//" limpa a pilha de navegação. Isso agora funciona
+                // porque RegistroPage está definido na TabBar do AppShell.xaml.
+                await Shell.Current.GoToAsync($"//{nameof(RegistroPage)}");
+                // ==================================================================
+                // FIM DA CORREÇÃO
+                // ==================================================================
             }
             else
             {

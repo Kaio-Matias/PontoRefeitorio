@@ -6,13 +6,19 @@ public partial class Apresentacao : ContentPage
     public Apresentacao()
     {
         InitializeComponent();
-        // Adicione esta linha para esconder a barra de navegação
         NavigationPage.SetHasNavigationBar(this, false);
     }
 
+    // ==================================================================
+    // INÍCIO DA CORREÇÃO
+    // ==================================================================
     private async void ProximoButton_Clicked(object sender, EventArgs e)
     {
-        var loginPage = IPlatformApplication.Current.Services.GetService<LoginPage>();
-        await Navigation.PushAsync(loginPage);
+        // Use a navegação por rota do Shell. O Shell irá criar uma nova
+        // instância da LoginPage para você, conforme definido no MauiProgram.cs.
+        await Shell.Current.GoToAsync(nameof(LoginPage));
     }
+    // ==================================================================
+    // FIM DA CORREÇÃO
+    // ==================================================================
 }

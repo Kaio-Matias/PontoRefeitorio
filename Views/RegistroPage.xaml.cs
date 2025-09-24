@@ -3,7 +3,6 @@ using PontoRefeitorio.ViewModels;
 
 namespace PontoRefeitorio.Views;
 
-// Adicione a palavra 'partial' aqui
 public partial class RegistroPage : ContentPage
 {
     public RegistroPage()
@@ -14,6 +13,7 @@ public partial class RegistroPage : ContentPage
 
     private async void RegistroButton_Clicked(object sender, EventArgs e)
     {
+        // Navega para a página da câmera usando a rota registada.
         await Shell.Current.GoToAsync(nameof(MainPage));
     }
 }

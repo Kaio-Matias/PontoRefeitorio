@@ -24,19 +24,20 @@ public static class MauiProgram
 #if DEBUG
         builder.Logging.AddDebug();
 #endif
-        // Services
+
         builder.Services.AddSingleton<AuthService>();
         builder.Services.AddSingleton<ApiService>();
 
-        // ViewModels
+
         builder.Services.AddSingleton<LoginPageViewModel>();
         builder.Services.AddSingleton<MainPageViewModel>();
         builder.Services.AddTransient<RegistroPageViewModel>();
 
-        // Pages
-        builder.Services.AddSingleton<LoginPage>();
-        builder.Services.AddTransient<MainPage>(); 
+
+        builder.Services.AddTransient<LoginPage>();
         builder.Services.AddTransient<Apresentacao>();
+        
+        builder.Services.AddTransient<MainPage>();
         builder.Services.AddTransient<RegistroPage>();
 
         return builder.Build();

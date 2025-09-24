@@ -1,5 +1,5 @@
-﻿using System.Net.Http.Headers;
-using System.Net.Http.Json;
+﻿// Arquivo: PontoRefeitorio/Services/ApiService.cs
+using System.Net.Http.Headers;
 using System.Text.Json;
 using PontoRefeitorio.Helpers;
 using PontoRefeitorio.Models;
@@ -9,7 +9,7 @@ namespace PontoRefeitorio.Services
     public class ApiService
     {
         private readonly HttpClient _httpClient;
-        private readonly string _baseUrl = "http://10.1.0.51:8090"; // <-- VERIFIQUE SE ESTE IP ESTÁ CORRETO
+        private readonly string _baseUrl = "http://localhost:5114";
 
         public ApiService()
         {
@@ -25,18 +25,22 @@ namespace PontoRefeitorio.Services
             }
 
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            _httpClient.DefaultRequestHeaders.Remove("DeviceId"); // Limpa o header antes de adicionar
+            _httpClient.DefaultRequestHeaders.Remove("DeviceId");
             _httpClient.DefaultRequestHeaders.Add("DeviceId", DeviceInfoHelper.GetDeviceId());
 
-            // Usamos MultipartFormDataContent para enviar a imagem
             using var content = new MultipartFormDataContent();
             var imageContent = new ByteArrayContent(photoBytes);
             imageContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
+            content.Add(imageContent, "fotoFile", "photo.jpg"); // O nome "fotoFile" deve corresponder ao parâmetro na API
 
-            // O nome "file" deve ser o mesmo esperado pelo seu endpoint na API
-            content.Add(imageContent, "file", "photo.jpg");
-
-            var requestUrl = $"{_baseUrl}/api/reconhecimento/rosto";
+            // ==================================================================
+            // INÍCIO DA CORREÇÃO
+            // ==================================================================
+            // Corrigido para o controlador e método corretos da sua API
+            var requestUrl = $"{_baseUrl}/api/Identificacao/identificar";
+            // ==================================================================
+            // FIM DA CORREÇÃO
+            // ==================================================================
 
             try
             {
@@ -50,7 +54,9 @@ namespace PontoRefeitorio.Services
                 else
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
-                    return new RegistroPontoResponse { Sucesso = false, Mensagem = $"Falha na API: {response.StatusCode} - {errorContent}" };
+                    // Tenta deserializar a mensagem de erro da API
+                    var errorResponse = JsonSerializer.Deserialize<RegistroPontoResponse>(errorContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    return new RegistroPontoResponse { Sucesso = false, Mensagem = errorResponse?.Mensagem ?? $"Falha na API: {response.StatusCode}" };
                 }
             }
             catch (Exception ex)

@@ -9,7 +9,7 @@ namespace PontoRefeitorio.Services
     public class AuthService
     {
         private readonly HttpClient _httpClient;
-        private readonly string _baseUrl = "http://10.1.0.51:8090"; // <-- VERIFIQUE SE ESTE IP ESTÁ CORRETO
+        private readonly string _baseUrl = "http://localhost:5114"; // <-- VERIFIQUE SE ESTE IP ESTÁ CORRETO
 
         public AuthService()
         {
