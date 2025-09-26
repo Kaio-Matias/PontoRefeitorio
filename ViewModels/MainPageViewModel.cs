@@ -1,9 +1,10 @@
 ﻿// Arquivo: PontoRefeitorio/ViewModels/MainPageViewModel.cs
-
 using CommunityToolkit.Maui.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PontoRefeitorio.Services;
+using PontoRefeitorio.Models;
+using Microsoft.Maui.Media; // Necessário para ImageFormat
 
 namespace PontoRefeitorio.ViewModels
 {
@@ -45,14 +46,16 @@ namespace PontoRefeitorio.ViewModels
         [RelayCommand]
         private async Task RegistrarPonto()
         {
-            if (IsBusy) return;
+            if (IsBusy || _cameraView == null) return;
+
             IsBusy = true;
             OnPropertyChanged(nameof(IsButtonEnabled));
 
             try
             {
-                // Esta é a chamada correta que você descobriu!
-                var photoStream = await _cameraView?.CaptureAsync();
+                await Task.Delay(500); // Pequeno atraso para garantir que a câmera está pronta
+
+                var photoStream = await _cameraView.CaptureImage(CancellationToken.None);
 
                 if (photoStream != null)
                 {
@@ -65,9 +68,12 @@ namespace PontoRefeitorio.ViewModels
                     if (response != null && response.Sucesso)
                     {
                         ColaboradorNome = response.Nome;
-                        ColaboradorFoto = ImageSource.FromStream(() => new MemoryStream(Convert.FromBase64String(response.FotoBase64)));
-                        ResultMessage = "Bem-vindo(a)!";
+                        ResultMessage = response.Mensagem;
                         ResultBackgroundColor = Colors.Green;
+                        if (!string.IsNullOrEmpty(response.FotoBase64))
+                        {
+                            ColaboradorFoto = ImageSource.FromStream(() => new MemoryStream(Convert.FromBase64String(response.FotoBase64)));
+                        }
                     }
                     else
                     {
@@ -89,7 +95,7 @@ namespace PontoRefeitorio.ViewModels
             {
                 ColaboradorNome = string.Empty;
                 ColaboradorFoto = "dotnet_bot.png";
-                ResultMessage = $"Erro: {ex.Message}";
+                ResultMessage = $"Erro crítico: {ex.Message}";
                 ResultBackgroundColor = Colors.Red;
             }
             finally
@@ -102,5 +108,63 @@ namespace PontoRefeitorio.ViewModels
                 OnPropertyChanged(nameof(IsButtonEnabled));
             }
         }
+
+        // ==================================================================
+        // INÍCIO DA NOVA FUNCIONALIDADE
+        // ==================================================================
+        [RelayCommand]
+        private async Task SavePhoto()
+        {
+            if (IsBusy || _cameraView == null) return;
+
+            IsBusy = true;
+            OnPropertyChanged(nameof(IsButtonEnabled));
+            string photoPath = string.Empty;
+
+            try
+            {
+                // Solicita permissão para escrever no armazenamento
+                var status = await Permissions.RequestAsync<Permissions.StorageWrite>();
+                if (status != PermissionStatus.Granted)
+                {
+                    await Shell.Current.DisplayAlert("Permissão Negada", "Não é possível salvar a foto sem permissão de armazenamento.", "OK");
+                    return;
+                }
+
+                await Task.Delay(500); // Garante que a câmera está pronta
+                var photoStream = await _cameraView.CaptureImage(CancellationToken.None);
+
+                if (photoStream != null)
+                {
+                    // Define o nome do arquivo e o caminho onde será salvo
+                    string fileName = $"PontoRefeitorio_Teste_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.jpg";
+                    photoPath = Path.Combine(FileSystem.CacheDirectory, fileName);
+
+                    // Lê o stream da foto e salva no arquivo
+                    using (var fileStream = new FileStream(photoPath, FileMode.Create, FileAccess.Write))
+                    {
+                        await photoStream.CopyToAsync(fileStream);
+                    }
+
+                    await Shell.Current.DisplayAlert("Sucesso", $"Foto salva com sucesso! Você pode encontrá-la em:\n\n{photoPath}", "OK");
+                }
+                else
+                {
+                    await Shell.Current.DisplayAlert("Erro", "Não foi possível capturar a foto.", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                await Shell.Current.DisplayAlert("Erro Crítico", $"Ocorreu um erro ao salvar a foto: {ex.Message}", "OK");
+            }
+            finally
+            {
+                IsBusy = false;
+                OnPropertyChanged(nameof(IsButtonEnabled));
+            }
+        }
+        // ==================================================================
+        // FIM DA NOVA FUNCIONALIDADE
+        // ==================================================================
     }
 }

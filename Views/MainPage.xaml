@@ -43,20 +43,34 @@
             </Frame>
         </Border>
 
-        <Button 
-            Grid.Row="2"
-            Text="Registrar Ponto" 
-            Command="{Binding RegistrarPontoCommand}" 
-            IsEnabled="{Binding IsButtonEnabled}"
-            BackgroundColor="#DE7913"
-            TextColor="White"
-            FontSize="18"
-            CornerRadius="50"
-            HeightRequest="60"
-            WidthRequest="250"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" 
-            Margin="0,20,0,40"/>
+       
+        <VerticalStackLayout Grid.Row="2" Spacing="10" HorizontalOptions="Center" VerticalOptions="Center" Margin="0,20,0,40">
+            <Button 
+                Text="Registrar Ponto" 
+                Command="{Binding RegistrarPontoCommand}" 
+                IsEnabled="{Binding IsButtonEnabled}"
+                BackgroundColor="#DE7913"
+                TextColor="White"
+                FontSize="18"
+                CornerRadius="50"
+                HeightRequest="60"
+                WidthRequest="250"/>
+
+            <!--  BOTÃO DE TESTE
+            <Button 
+                Text="Salvar Foto para Teste" 
+                Command="{Binding SavePhotoCommand}" 
+                IsEnabled="{Binding IsButtonEnabled}"
+                BackgroundColor="#512BD4"
+                TextColor="White"
+                FontSize="16"
+                CornerRadius="50"
+                HeightRequest="50"
+                WidthRequest="250"/> -->
+            
+        </VerticalStackLayout>
+        
+
 
         <Grid 
             Grid.RowSpan="3"
