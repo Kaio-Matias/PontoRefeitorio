@@ -1,19 +1,17 @@
-// Arquivo: PontoRefeitorio/Views/RegistroPage.xaml.cs
 using PontoRefeitorio.ViewModels;
 
 namespace PontoRefeitorio.Views;
 
 public partial class RegistroPage : ContentPage
 {
-    public RegistroPage()
+    public RegistroPage(RegistroPageViewModel viewModel)
     {
         InitializeComponent();
-        BindingContext = new RegistroPageViewModel();
+        BindingContext = viewModel;
     }
 
     private async void RegistroButton_Clicked(object sender, EventArgs e)
     {
-        // Navega para a página da câmera usando a rota registada.
         await Shell.Current.GoToAsync(nameof(MainPage));
     }
 }

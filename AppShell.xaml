@@ -8,8 +8,9 @@
     Shell.NavBarIsVisible="False">
 
     <TabBar>
+        <!-- A TabBar é necessária para o fluxo de navegação, mas podemos ter apenas um item visível -->
         <ShellContent
-            Title="Registro de Ponto"
+            Title="Registo"
             ContentTemplate="{DataTemplate views:RegistroPage}"
             Route="RegistroPage" />
     </TabBar>

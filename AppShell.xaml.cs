@@ -1,18 +1,18 @@
-﻿// Arquivo: AppShell.xaml.cs
-using PontoRefeitorio.Views;
+﻿using PontoRefeitorio.Views;
 
-namespace PontoRefeitorio;
-
-public partial class AppShell : Shell
+namespace PontoRefeitorio
 {
-    public AppShell()
+    public partial class AppShell : Shell
     {
-        InitializeComponent();
+        public AppShell()
+        {
+            InitializeComponent();
 
-        // Registra as páginas que não estão na hierarquia visual do Shell
-        // para que possamos navegar até elas.
-        Routing.RegisterRoute(nameof(Apresentacao), typeof(Apresentacao));
-        Routing.RegisterRoute(nameof(LoginPage), typeof(LoginPage));
-        Routing.RegisterRoute(nameof(MainPage), typeof(MainPage));
+            // Registo de todas as rotas para a navegação funcionar
+            Routing.RegisterRoute(nameof(Apresentacao), typeof(Apresentacao));
+            Routing.RegisterRoute(nameof(LoginPage), typeof(LoginPage));
+            Routing.RegisterRoute(nameof(MainPage), typeof(MainPage));
+            Routing.RegisterRoute(nameof(RegistroPage), typeof(RegistroPage));
+        }
     }
 }

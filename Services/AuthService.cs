@@ -1,30 +1,25 @@
-﻿// Arquivo: PontoRefeitorio/Services/AuthService.cs
-
-using System.Net.Http.Json;
-using PontoRefeitorio.Helpers;
+﻿using Newtonsoft.Json;
 using PontoRefeitorio.Models;
+using System.Text;
+using System.Net.Http.Json;
 
 namespace PontoRefeitorio.Services
 {
     public class AuthService
     {
         private readonly HttpClient _httpClient;
-        private readonly string _baseUrl = "http://localhost:5114"; // <-- VERIFIQUE SE ESTE IP ESTÁ CORRETO
+        private const string BaseUrl = "http://localhost:5114"; // IP para emulador Android
 
         public AuthService()
         {
-            _httpClient = new HttpClient();
+            _httpClient = new HttpClient { BaseAddress = new Uri(BaseUrl) };
         }
 
-        // Método que estava faltando:
         public async Task<LoginResponse> LoginAsync(LoginRequest loginRequest)
         {
-            var requestUrl = $"{_baseUrl}/api/auth/login";
-
             try
             {
-                var response = await _httpClient.PostAsJsonAsync(requestUrl, loginRequest);
-
+                var response = await _httpClient.PostAsJsonAsync("/api/auth/login", loginRequest);
                 if (response.IsSuccessStatusCode)
                 {
                     var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
@@ -37,11 +32,9 @@ namespace PontoRefeitorio.Services
             }
             catch (Exception ex)
             {
-                // Trata erro de conexão
                 return new LoginResponse { Message = $"Erro de conexão: {ex.Message}" };
             }
-
-            return new LoginResponse { Message = "Usuário ou senha inválidos." };
+            return new LoginResponse { Message = "Utilizador ou senha inválidos." };
         }
     }
 }

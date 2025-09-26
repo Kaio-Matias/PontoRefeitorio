@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="PontoRefeitorio.Views.Apresentacao"
-             BackgroundColor="white" Shell.NavBarIsVisible="False">
+             BackgroundColor="White" Shell.NavBarIsVisible="False">
 
     <ContentPage.Behaviors>
         <toolkit:StatusBarBehavior StatusBarColor="White" StatusBarStyle="DarkContent" />
@@ -13,7 +13,7 @@
         <VerticalStackLayout 
             Padding="30" 
             Spacing="15" 
-            VerticalOptions="CenterAndExpand" 
+            VerticalOptions="Center" 
             HorizontalOptions="Center">
 
             <Image 
@@ -34,9 +34,9 @@
                 TextColor="#DE7913" HorizontalOptions="Center"/>
 
             <Label 
-                Text="Um aplicativo pensado para o registro eficiente de refeições"
+                Text="Um aplicativo pensado para o registo eficiente de refeições"
                 FontSize="16"
-                TextColor="black" HorizontalOptions="Center"
+                TextColor="Black" HorizontalOptions="Center"
                 LineBreakMode="WordWrap"
                 HorizontalTextAlignment="Center"
                 Margin="0,10,0,50"/>
@@ -46,32 +46,17 @@
                 VerticalOptions="EndAndExpand" 
                 Margin="0,150,0,0"
                 Spacing="0">
-
                 <Label 
                     Text="Desenvolvido e mantido pela"
                     FontSize="12"
-                    TextColor="black"
+                    TextColor="Black"
                     HorizontalOptions="Center"/>
-
                 <Label 
-                    Text="equipe de T.I Valedourado"
+                    Text="equipa de T.I Valedourado"
                     FontSize="12"
-                    TextColor="black"
+                    TextColor="Black"
                     HorizontalOptions="Center"/>
-
             </VerticalStackLayout>
-
         </VerticalStackLayout>
-
-        <Button 
-            Text="Próximo" 
-            Clicked="ProximoButton_Clicked"
-            BackgroundColor="#DE7913"
-            TextColor="White"
-            FontSize="18"
-            CornerRadius="30"
-            HeightRequest="50"
-            WidthRequest="120" HorizontalOptions="Center"
-            VerticalOptions="End" Margin="220,0,0,30"/>
     </Grid>
 </ContentPage>

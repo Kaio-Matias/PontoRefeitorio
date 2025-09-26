@@ -1,5 +1,4 @@
-﻿// Arquivo: PontoRefeitorio/ViewModels/LoginPageViewModel.cs
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PontoRefeitorio.Models;
 using PontoRefeitorio.Services;
@@ -9,15 +8,9 @@ namespace PontoRefeitorio.ViewModels
 {
     public partial class LoginPageViewModel : ObservableObject
     {
-        [ObservableProperty]
-        private string _email;
-
-        [ObservableProperty]
-        private string _senha;
-
-        [ObservableProperty]
-        private string _errorMessage;
-
+        [ObservableProperty] private string email;
+        [ObservableProperty] private string senha;
+        [ObservableProperty] private string errorMessage;
         private readonly AuthService _authService;
 
         public LoginPageViewModel(AuthService authService)
@@ -40,17 +33,7 @@ namespace PontoRefeitorio.ViewModels
             if (response != null && !string.IsNullOrEmpty(response.Token))
             {
                 ErrorMessage = string.Empty;
-
-                // ==================================================================
-                // INÍCIO DA CORREÇÃO
-                // ==================================================================
-                // Navega para a página de registro de ponto como a nova página raiz.
-                // O prefixo "//" limpa a pilha de navegação. Isso agora funciona
-                // porque RegistroPage está definido na TabBar do AppShell.xaml.
-                await Shell.Current.GoToAsync($"//{nameof(RegistroPage)}");
-                // ==================================================================
-                // FIM DA CORREÇÃO
-                // ==================================================================
+                await Shell.Current.GoToAsync($"///{nameof(RegistroPage)}");
             }
             else
             {
