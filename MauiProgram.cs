@@ -40,6 +40,8 @@ namespace PontoRefeitorio
             builder.Services.AddTransient<RegistroPage>();
             builder.Services.AddTransient<RegistroPageViewModel>();
 
+            // NOVO: Registo da página Apresentacao para injeção de dependência.
+            builder.Services.AddTransient<Apresentacao>();
 
             return builder.Build();
         }

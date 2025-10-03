@@ -11,8 +11,11 @@ namespace PontoRefeitorio
             // Registo de todas as rotas para a navegação funcionar
             Routing.RegisterRoute(nameof(Apresentacao), typeof(Apresentacao));
             Routing.RegisterRoute(nameof(LoginPage), typeof(LoginPage));
-            Routing.RegisterRoute(nameof(MainPage), typeof(MainPage));
             Routing.RegisterRoute(nameof(RegistroPage), typeof(RegistroPage));
+
+            // CORREÇÃO: A MainPage não está na estrutura visual do Shell,
+            // por isso precisa de ser registada explicitamente para a navegação funcionar.
+            Routing.RegisterRoute(nameof(MainPage), typeof(MainPage));
         }
     }
 }

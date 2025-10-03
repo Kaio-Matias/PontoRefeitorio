@@ -1,12 +1,11 @@
 ﻿// Arquivo: PontoRefeitorio/Models/LoginRequest.cs
-
 namespace PontoRefeitorio.Models
 {
     public class LoginRequest
     {
-        // Corrigido para Email, conforme seu modelo Usuario
-        public string Email { get; set; }
-
-        public string Senha { get; set; }
+        // CORREÇÃO: Alterado de Email para Username.
+        public string Username { get; set; }
+        // CORREÇÃO: Alterado de Senha para Password.
+        public string Password { get; set; }
     }
 }

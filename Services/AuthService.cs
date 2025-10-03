@@ -1,6 +1,5 @@
-﻿using Newtonsoft.Json;
-using PontoRefeitorio.Models;
-using System.Text;
+﻿using PontoRefeitorio.Models;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
 namespace PontoRefeitorio.Services
@@ -8,7 +7,9 @@ namespace PontoRefeitorio.Services
     public class AuthService
     {
         private readonly HttpClient _httpClient;
-        private const string BaseUrl = "http://localhost:5114"; // IP para emulador Android
+
+        // CORREÇÃO: Usa o endereço correto dependendo da plataforma.
+        public static string BaseUrl => DeviceInfo.Platform == DevicePlatform.Android ? "http://10.0.2.2:5114" : "http://localhost:5114";
 
         public AuthService()
         {
@@ -35,6 +36,23 @@ namespace PontoRefeitorio.Services
                 return new LoginResponse { Message = $"Erro de conexão: {ex.Message}" };
             }
             return new LoginResponse { Message = "Utilizador ou senha inválidos." };
+        }
+
+        public async Task<bool> IsTokenValidAsync(string token)
+        {
+            if (string.IsNullOrEmpty(token))
+                return false;
+
+            try
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                var response = await _httpClient.GetAsync("/api/auth/validate-token");
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

@@ -1,28 +1,34 @@
+using PontoRefeitorio.Services;
+
 namespace PontoRefeitorio.Views;
 
 public partial class Apresentacao : ContentPage
 {
-    public Apresentacao()
+    private readonly AuthService _authService;
+
+    public Apresentacao(AuthService authService)
     {
         InitializeComponent();
+        _authService = authService;
     }
-
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await Task.Delay(3000); // Manter a splash por 3 segundos
+        await Task.Delay(3000);
 
         var token = await SecureStorage.GetAsync("auth_token");
-        if (!string.IsNullOrEmpty(token))
+
+        if (!string.IsNullOrEmpty(token) && await _authService.IsTokenValidAsync(token))
         {
-            // Se o utilizador já está logado, vai para a página de registo
-            await Shell.Current.GoToAsync($"///{nameof(RegistroPage)}");
+            // CORREÇÃO: Navega para a rota da TabBar principal.
+            await Shell.Current.GoToAsync($"//MainApp/{nameof(RegistroPage)}");
         }
         else
         {
-            // Senão, vai para a página de login
-            await Shell.Current.GoToAsync($"///{nameof(LoginPage)}");
+            SecureStorage.Remove("auth_token");
+            // CORREÇÃO: Navega para a rota de Login.
+            await Shell.Current.GoToAsync($"//{nameof(LoginPage)}");
         }
     }
 }

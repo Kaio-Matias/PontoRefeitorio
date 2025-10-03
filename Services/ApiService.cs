@@ -1,17 +1,14 @@
 ﻿using Newtonsoft.Json;
 using PontoRefeitorio.Models;
 using System.Net.Http.Headers;
+using System.Text; // Adicionar para o Json
 
 namespace PontoRefeitorio.Services
 {
     public class ApiService
     {
         private readonly HttpClient _httpClient;
-        // --- INÍCIO DA CORREÇÃO ---
-        // 1. IP corrigido para comunicação com o emulador Android.
-        // Verifique se a porta 5114 é a mesma que sua API está usando.
-        private const string BaseUrl = "http://localhost:5114";
-        // --- FIM DA CORREÇÃO ---
+        public static string BaseUrl => AuthService.BaseUrl;
 
         public ApiService()
         {
@@ -22,38 +19,51 @@ namespace PontoRefeitorio.Services
         {
             try
             {
-                // Busca o token de autenticação salvo no dispositivo
                 var token = await SecureStorage.GetAsync("auth_token");
                 if (string.IsNullOrEmpty(token))
                 {
-                    return new RegistroPontoResponse { Sucesso = false, Mensagem = "Usuário não autenticado. Faça o login novamente." };
+                    return new RegistroPontoResponse { Sucesso = false, Mensagem = "Não autorizado. Faça o login novamente." };
                 }
 
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 using var content = new MultipartFormDataContent();
-                // O nome "file" deve corresponder ao parâmetro no controller ([FromForm] IFormFile file)
                 content.Add(new ByteArrayContent(fotoBytes), "file", fileName);
 
-                // Endpoint corrigido para corresponder ao IdentificacaoController
-                var response = await _httpClient.PostAsync("/api/Identificacao/registrar-ponto", content);
+                var response = await _httpClient.PostAsync("api/Identificacao/registrar-ponto", content);
+
                 var jsonResponse = await response.Content.ReadAsStringAsync();
 
-                if (response.IsSuccessStatusCode)
+                // Se a resposta NÃO for de sucesso (ex: 400 Bad Request, 404 Not Found)
+                if (!response.IsSuccessStatusCode)
                 {
-                    return JsonConvert.DeserializeObject<RegistroPontoResponse>(jsonResponse);
+                    // Tenta ler a mensagem de erro específica enviada pela API
+                    if (!string.IsNullOrEmpty(jsonResponse))
+                    {
+                        var errorResponse = JsonConvert.DeserializeObject<RegistroPontoResponse>(jsonResponse);
+                        if (errorResponse != null && !string.IsNullOrEmpty(errorResponse.Mensagem))
+                        {
+                            return new RegistroPontoResponse { Sucesso = false, Mensagem = errorResponse.Mensagem };
+                        }
+                    }
+
+                    // Se não conseguir ler a mensagem específica, retorna um erro genérico
+                    if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    {
+                        return new RegistroPontoResponse { Sucesso = false, Mensagem = "Sessão expirada. Faça o login novamente." };
+                    }
+
+                    return new RegistroPontoResponse { Sucesso = false, Mensagem = $"Erro do servidor: {response.ReasonPhrase}" };
                 }
-                else
-                {
-                    // Tenta desserializar a resposta de erro para obter uma mensagem mais clara
-                    var errorResponse = JsonConvert.DeserializeObject<RegistroPontoResponse>(jsonResponse);
-                    return errorResponse ?? new RegistroPontoResponse { Sucesso = false, Mensagem = $"Erro {response.StatusCode}: {jsonResponse}" };
-                }
+
+                // Se a resposta for de sucesso (200 OK)
+                return JsonConvert.DeserializeObject<RegistroPontoResponse>(jsonResponse);
             }
             catch (Exception ex)
             {
-                // Log do erro pode ser adicionado aqui
-                return new RegistroPontoResponse { Sucesso = false, Mensagem = "Não foi possível conectar ao servidor. Verifique sua conexão." };
+                // Este erro geralmente indica que a API está offline ou o endereço/porta está errado.
+                System.Diagnostics.Debug.WriteLine($"Erro de conexão: {ex.Message}");
+                return new RegistroPontoResponse { Sucesso = false, Mensagem = "Não foi possível conectar ao servidor." };
             }
         }
     }

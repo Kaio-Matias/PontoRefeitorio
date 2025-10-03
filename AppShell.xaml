@@ -7,8 +7,17 @@
     Shell.FlyoutBehavior="Disabled"
     Shell.NavBarIsVisible="False">
 
-    <TabBar>
-        <!-- A TabBar é necessária para o fluxo de navegação, mas podemos ter apenas um item visível -->
+    <ShellContent
+        Title="Apresentacao"
+        ContentTemplate="{DataTemplate views:Apresentacao}"
+        Route="Apresentacao" />
+
+    <ShellContent
+        Title="Login"
+        ContentTemplate="{DataTemplate views:LoginPage}"
+        Route="LoginPage" />
+
+    <TabBar Route="MainApp">
         <ShellContent
             Title="Registo"
             ContentTemplate="{DataTemplate views:RegistroPage}"

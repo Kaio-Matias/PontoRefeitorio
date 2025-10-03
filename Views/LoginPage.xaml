@@ -28,7 +28,7 @@
                 Spacing="20">
 
                 <Image 
-                    Source="logo.png"
+                     Source="logo.png"
                     HeightRequest="300"
                     WidthRequest="250"
                     HorizontalOptions="Center"
@@ -39,10 +39,10 @@
                     Padding="15,5,15,5" 
                     BackgroundColor="#F0F0F0" 
                     BorderColor="Transparent"
-                    HasShadow="False">
+                     HasShadow="False">
                     <Entry 
-                        Text="{Binding Email}"
-                        Placeholder="Email"
+                        Text="{Binding Username}"
+                        Placeholder="Utilizador"
                         PlaceholderColor="Gray"
                         TextColor="Black"
                         Keyboard="Email"
@@ -54,39 +54,39 @@
                     CornerRadius="30" 
                     Padding="15,5,15,5" 
                     BackgroundColor="#F0F0F0"
-                    BorderColor="Transparent"
+                     BorderColor="Transparent"
                     HasShadow="False">
                     <Entry 
                         Text="{Binding Senha}"
-                        Placeholder="Senha"
+                         Placeholder="Senha"
                         PlaceholderColor="Gray"
                         TextColor="Black"
                         IsPassword="True"
-                        FontSize="16"
+                         FontSize="16"
                         VerticalOptions="Center"/>
                 </Frame>
 
                 <Label 
                     Text="{Binding ErrorMessage}"
-                    TextColor="Red"
+                     TextColor="Red"
                     HorizontalOptions="Center"
                     Margin="0,0,0,10"/>
 
                 <Button 
                     Text="Entrar" 
-                    Command="{Binding SubmitLoginCommand}"
+                     Command="{Binding SubmitLoginCommand}"
                     BackgroundColor="White"
                     TextColor="#DE7913"
                     FontSize="18"
                     CornerRadius="30"
-                    HeightRequest="50"
+                     HeightRequest="50"
                     Margin="80,20,80,0"/>
             </VerticalStackLayout>
 
             <Label 
                 Grid.Row="1"
                 Text="Desenvolvido e mantido pela equipa de T.I Valedourado"
-                FontSize="12"
+                 FontSize="12"
                 TextColor="Black"
                 HorizontalOptions="Center"
                 Margin="0,0,0,20"/>

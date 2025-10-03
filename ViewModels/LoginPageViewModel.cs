@@ -8,7 +8,7 @@ namespace PontoRefeitorio.ViewModels
 {
     public partial class LoginPageViewModel : ObservableObject
     {
-        [ObservableProperty] private string email;
+        [ObservableProperty] private string username;
         [ObservableProperty] private string senha;
         [ObservableProperty] private string errorMessage;
         private readonly AuthService _authService;
@@ -21,19 +21,20 @@ namespace PontoRefeitorio.ViewModels
         [RelayCommand]
         private async Task SubmitLogin()
         {
-            if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Senha))
+            if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(Senha))
             {
-                ErrorMessage = "Por favor, preencha o email e a senha.";
+                ErrorMessage = "Por favor, preencha o utilizador e a senha.";
                 return;
             }
 
-            var loginRequest = new LoginRequest { Email = this.Email, Senha = this.Senha };
+            var loginRequest = new LoginRequest { Username = this.Username, Password = this.Senha };
             var response = await _authService.LoginAsync(loginRequest);
 
             if (response != null && !string.IsNullOrEmpty(response.Token))
             {
                 ErrorMessage = string.Empty;
-                await Shell.Current.GoToAsync($"///{nameof(RegistroPage)}");
+                // CORREÇÃO: Navega para a rota da TabBar principal.
+                await Shell.Current.GoToAsync($"//MainApp/{nameof(RegistroPage)}");
             }
             else
             {
