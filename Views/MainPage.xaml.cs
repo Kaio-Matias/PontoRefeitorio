@@ -21,9 +21,22 @@ namespace PontoRefeitorio.Views
             base.OnAppearing();
             await RequestCameraPermission();
             await SetCamera();
+
             if (BindingContext is MainPageViewModel viewModel)
             {
-                viewModel.InitializeCamera(cameraView);
+                viewModel.SetTakePhotoAction(async () =>
+                {
+                    var photoStream = await cameraView.CaptureImage(CancellationToken.None);
+                    if (photoStream != null)
+                    {
+                        using var memoryStream = new MemoryStream();
+                        await photoStream.CopyToAsync(memoryStream);
+                        var imageBytes = memoryStream.ToArray();
+                        await viewModel.ProcessCapturedImage(imageBytes);
+                    }
+                });
+
+                viewModel.StartCaptureProcessCommand.Execute(null); // inicia automaticamente
             }
         }
 

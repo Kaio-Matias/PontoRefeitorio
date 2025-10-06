@@ -43,43 +43,42 @@
             </Frame>
         </Border>
 
-       
-        <VerticalStackLayout Grid.Row="2" Spacing="10" HorizontalOptions="Center" VerticalOptions="Center" Margin="0,20,0,40">
-            <Button 
-                Text="Registrar Ponto" 
-                Command="{Binding RegistrarPontoCommand}" 
-                IsEnabled="{Binding IsButtonEnabled}"
-                BackgroundColor="#DE7913"
-                TextColor="White"
-                FontSize="18"
-                CornerRadius="50"
-                HeightRequest="60"
-                WidthRequest="250"/>
+        <BoxView Grid.Row="2" HeightRequest="100"/>
 
-            <!--  BOTÃO DE TESTE
-            <Button 
-                Text="Salvar Foto para Teste" 
-                Command="{Binding SavePhotoCommand}" 
-                IsEnabled="{Binding IsButtonEnabled}"
-                BackgroundColor="#512BD4"
-                TextColor="White"
-                FontSize="16"
-                CornerRadius="50"
-                HeightRequest="50"
-                WidthRequest="250"/> -->
-            
-        </VerticalStackLayout>
-        
+        <Grid Grid.RowSpan="3" IsVisible="{Binding ShowInitialLayout}" BackgroundColor="#A0000000">
+            <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="20">
+                <Label Text="Clique no ícone para registrar" TextColor="White" FontSize="24" HorizontalTextAlignment="Center"/>
+                <Image Source="biometria.png" HeightRequest="150">
+                    <Image.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding StartCaptureProcessCommand}" />
+                    </Image.GestureRecognizers>
+                </Image>
+            </VerticalStackLayout>
+        </Grid>
 
+        <Label Grid.Row="1" Text="{Binding CountdownValue}"
+               IsVisible="{Binding ShowCountdown}"
+               FontSize="150" FontAttributes="Bold" TextColor="White"
+               HorizontalOptions="Center" VerticalOptions="Center">
+            <Label.Shadow>
+                <Shadow Brush="Black" Offset="5,5" Radius="10" />
+            </Label.Shadow>
+        </Label>
 
         <Grid 
             Grid.RowSpan="3"
-            IsVisible="{Binding ShowResultOverlay}"
+            IsVisible="{Binding ShowPopup}"
             BackgroundColor="#A0000000">
             <VerticalStackLayout 
                 VerticalOptions="Center" 
                 HorizontalOptions="Center"
                 Spacing="20">
+
+                <Label 
+                    Text="{Binding ColaboradorNome}"
+                    FontSize="24"
+                    TextColor="White"
+                    HorizontalTextAlignment="Center"/>
 
                 <Border 
                     StrokeShape="RoundRectangle 100" 
@@ -88,7 +87,7 @@
                     WidthRequest="200"
                     BackgroundColor="{Binding ResultBackgroundColor}">
                     <Image
-                        Source="{Binding ColaboradorFoto}"
+                        Source="{Binding CapturedImageSource}"
                         Aspect="AspectFill" />
                 </Border>
 
@@ -99,13 +98,13 @@
                     TextColor="White"
                     HorizontalTextAlignment="Center"/>
 
-                <Label 
-                    Text="{Binding ColaboradorNome}"
-                    FontSize="24"
-                    TextColor="White"
-                    HorizontalTextAlignment="Center"/>
+                <ActivityIndicator IsRunning="{Binding IsBusy}" Color="White"/>
+
+                <Button Text="Cancelar"
+                        IsVisible="{Binding IsBusy}"
+                        Command="{Binding CancelCommand}"
+                        BackgroundColor="Red" TextColor="White" WidthRequest="200" CornerRadius="30"/>
             </VerticalStackLayout>
         </Grid>
-
     </Grid>
 </ContentPage>

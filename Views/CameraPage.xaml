@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:viewmodel="clr-namespace:PontoRefeitorio.ViewModels"
+             x:DataType="viewmodel:CameraPageViewModel"
+             x:Class="PontoRefeitorio.Views.CameraPage"
+             Shell.NavBarIsVisible="False"
+             Title="Registro de Ponto">
+
+    <Grid>
+        <toolkit:CameraView x:Name="cameraView" 
+                            HorizontalOptions="FillAndExpand" 
+                            VerticalOptions="FillAndExpand" />
+
+        <Label Text="{Binding CountdownValue}"
+               IsVisible="{Binding ShowCountdown}"
+               FontSize="150"
+               FontAttributes="Bold"
+               TextColor="White"
+               HorizontalOptions="Center"
+               VerticalOptions="Center">
+            <Label.Shadow>
+                <Shadow Brush="Black" Offset="5,5" Radius="10" />
+            </Label.Shadow>
+        </Label>
+
+        <Grid IsVisible="{Binding ShowPopup}"
+              BackgroundColor="#CC000000">
+
+            <VerticalStackLayout Spacing="20" 
+                                 HorizontalOptions="Center" 
+                                 VerticalOptions="Center">
+
+                <Frame CornerRadius="150"
+                       HeightRequest="300"
+                       WidthRequest="300"
+                       IsClippedToBounds="True"
+                       Padding="0"
+                       HorizontalOptions="Center">
+                    <Image Aspect="AspectFill"
+                           Source="{Binding CapturedImageSource}" />
+                </Frame>
+
+                <ActivityIndicator IsRunning="{Binding IsBusy}" Color="White" />
+
+                <Label x:Name="ResultMessageLabel"
+                       Text="{Binding ResultMessage}" 
+                       TextColor="White"
+                       BackgroundColor="{Binding ResultBackgroundColor}"
+                       FontSize="Large"
+                       HorizontalTextAlignment="Center"
+                       Padding="10"
+                       IsVisible="{Binding RegistrationFinished}"/>
+
+                <Button Text="Cancelar"
+                        Command="{Binding CloseAndGoBackCommand}"
+                        BackgroundColor="Red"
+                        TextColor="White"
+                        WidthRequest="200" />
+            </VerticalStackLayout>
+        </Grid>
+    </Grid>
+</ContentPage>

@@ -1,13 +1,13 @@
 ﻿using Newtonsoft.Json;
 using PontoRefeitorio.Models;
 using System.Net.Http.Headers;
-using System.Text; // Adicionar para o Json
 
 namespace PontoRefeitorio.Services
 {
     public class ApiService
     {
         private readonly HttpClient _httpClient;
+        // Garante que a URL base seja consistente em toda a aplicação.
         public static string BaseUrl => AuthService.BaseUrl;
 
         public ApiService()
@@ -15,7 +15,7 @@ namespace PontoRefeitorio.Services
             _httpClient = new HttpClient { BaseAddress = new Uri(BaseUrl) };
         }
 
-        public async Task<RegistroPontoResponse> RegistrarPonto(byte[] fotoBytes, string fileName = "ponto.jpg")
+        public async Task<RegistroPontoResponse> RegistrarPonto(byte[] fotoBytes, CancellationToken cancellationToken, string fileName = "ponto.jpg")
         {
             try
             {
@@ -30,14 +30,16 @@ namespace PontoRefeitorio.Services
                 using var content = new MultipartFormDataContent();
                 content.Add(new ByteArrayContent(fotoBytes), "file", fileName);
 
-                var response = await _httpClient.PostAsync("api/Identificacao/registrar-ponto", content);
+                // Passa o CancellationToken para a requisição, permitindo o cancelamento.
+                var response = await _httpClient.PostAsync("api/Identificacao/registrar-ponto", content, cancellationToken);
 
-                var jsonResponse = await response.Content.ReadAsStringAsync();
+                // Sempre lê o conteúdo da resposta, seja sucesso ou erro.
+                var jsonResponse = await response.Content.ReadAsStringAsync(cancellationToken);
 
-                // Se a resposta NÃO for de sucesso (ex: 400 Bad Request, 404 Not Found)
+                // Se a requisição não teve sucesso (ex: 400, 404, 500)
                 if (!response.IsSuccessStatusCode)
                 {
-                    // Tenta ler a mensagem de erro específica enviada pela API
+                    // Tenta extrair a mensagem de erro específica da API.
                     if (!string.IsNullOrEmpty(jsonResponse))
                     {
                         var errorResponse = JsonConvert.DeserializeObject<RegistroPontoResponse>(jsonResponse);
@@ -47,7 +49,7 @@ namespace PontoRefeitorio.Services
                         }
                     }
 
-                    // Se não conseguir ler a mensagem específica, retorna um erro genérico
+                    // Fallback para mensagens de erro genéricas.
                     if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                     {
                         return new RegistroPontoResponse { Sucesso = false, Mensagem = "Sessão expirada. Faça o login novamente." };
@@ -56,13 +58,17 @@ namespace PontoRefeitorio.Services
                     return new RegistroPontoResponse { Sucesso = false, Mensagem = $"Erro do servidor: {response.ReasonPhrase}" };
                 }
 
-                // Se a resposta for de sucesso (200 OK)
+                // Se a requisição teve sucesso (código 2xx).
                 return JsonConvert.DeserializeObject<RegistroPontoResponse>(jsonResponse);
             }
-            catch (Exception ex)
+            catch (OperationCanceledException)
             {
-                // Este erro geralmente indica que a API está offline ou o endereço/porta está errado.
-                System.Diagnostics.Debug.WriteLine($"Erro de conexão: {ex.Message}");
+                // Propaga a exceção para que o ViewModel saiba que a operação foi cancelada.
+                throw;
+            }
+            catch (Exception)
+            {
+                // Ocorre se a API estiver offline ou inacessível.
                 return new RegistroPontoResponse { Sucesso = false, Mensagem = "Não foi possível conectar ao servidor." };
             }
         }

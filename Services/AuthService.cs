@@ -8,8 +8,8 @@ namespace PontoRefeitorio.Services
     {
         private readonly HttpClient _httpClient;
 
-        // CORREÇÃO: Usa o endereço correto dependendo da plataforma.
-        public static string BaseUrl => DeviceInfo.Platform == DevicePlatform.Android ? "http://10.0.2.2:5114" : "http://localhost:5114";
+        // URL fixa da API
+        public static string BaseUrl = "https://api.ponto-refeitorio.valedourado.com.br:8091";
 
         public AuthService()
         {
@@ -35,6 +35,7 @@ namespace PontoRefeitorio.Services
             {
                 return new LoginResponse { Message = $"Erro de conexão: {ex.Message}" };
             }
+
             return new LoginResponse { Message = "Utilizador ou senha inválidos." };
         }
 
