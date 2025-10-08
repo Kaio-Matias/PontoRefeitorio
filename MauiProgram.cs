@@ -13,8 +13,9 @@ namespace PontoRefeitorio
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
-                .UseMauiCommunityToolkitCamera() // Necessário para o CameraView
-                .UseMauiCommunityToolkit() // Necessário para o Base64 to Image converter
+                .UseMauiCommunityToolkitCamera() 
+                .UseMauiCommunityToolkit() 
+                .UseMauiCommunityToolkitMediaElement() 
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");

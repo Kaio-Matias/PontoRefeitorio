@@ -1,5 +1,8 @@
 using CommunityToolkit.Maui.Core;
 using PontoRefeitorio.ViewModels;
+#if ANDROID
+using Android.Graphics;
+#endif
 
 namespace PontoRefeitorio.Views
 {
@@ -14,6 +17,7 @@ namespace PontoRefeitorio.Views
             _viewModel = viewModel;
             BindingContext = _viewModel;
             _cameraProvider = cameraProvider;
+            _viewModel.SetMediaElement(mediaElement);
         }
 
         protected override async void OnAppearing()
@@ -32,13 +36,68 @@ namespace PontoRefeitorio.Views
                         using var memoryStream = new MemoryStream();
                         await photoStream.CopyToAsync(memoryStream);
                         var imageBytes = memoryStream.ToArray();
-                        await viewModel.ProcessCapturedImage(imageBytes);
+
+                        // Redimensiona e rotaciona a imagem antes de enviar para a API
+                        var processedImage = await ResizeAndRotateImage(imageBytes, 600, 800);
+                        await viewModel.ProcessCapturedImage(processedImage);
                     }
                 });
 
-                viewModel.StartCaptureProcessCommand.Execute(null); // inicia automaticamente
+                // Inicia o processo de captura assim que a página aparece
+                if (viewModel.ShowInitialLayout)
+                {
+                    viewModel.StartCaptureProcessCommand.Execute(null);
+                }
             }
         }
+
+        /// <summary>
+        /// Redimensiona e rotaciona a imagem para o formato retrato (portrait)
+        /// </summary>
+        private async Task<byte[]> ResizeAndRotateImage(byte[] imageData, float width, float height)
+        {
+#if ANDROID
+            try
+            {
+                var originalImage = BitmapFactory.DecodeByteArray(imageData, 0, imageData.Length);
+
+                var matrix = new Matrix();
+
+                // AJUSTE: A rotação correta para a câmera frontal na maioria dos dispositivos Android
+                // é de 270 graus (ou -90) para corrigir a orientação do sensor.
+                matrix.PostRotate(270);
+
+                // Cria o bitmap rotacionado a partir da imagem original
+                var rotatedBitmap = Bitmap.CreateBitmap(originalImage, 0, 0, originalImage.Width, originalImage.Height, matrix, true);
+
+                // Redimensiona o bitmap já rotacionado
+                var scaledBitmap = Bitmap.CreateScaledBitmap(rotatedBitmap, (int)width, (int)height, true);
+
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    // Comprime a imagem final para garantir um tamanho de arquivo menor
+                    scaledBitmap.Compress(Bitmap.CompressFormat.Jpeg, 85, ms); // Qualidade de 85%
+
+                    // Libera a memória dos bitmaps
+                    originalImage.Recycle();
+                    rotatedBitmap.Recycle();
+                    scaledBitmap.Recycle();
+
+                    return ms.ToArray();
+                }
+            }
+            catch (Exception)
+            {
+                // Em caso de erro, retorna a imagem original
+                return imageData;
+            }
+
+#else
+            // Para outras plataformas, retorna a imagem original por enquanto.
+            return await Task.FromResult(imageData);
+#endif
+        }
+
 
         private async Task SetCamera()
         {

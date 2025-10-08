@@ -3,6 +3,8 @@ using CommunityToolkit.Mvvm.Input;
 using PontoRefeitorio.Models;
 using PontoRefeitorio.Services;
 using System.Diagnostics;
+using CommunityToolkit.Maui.Views;
+using PontoRefeitorio.Views;
 
 namespace PontoRefeitorio.ViewModels
 {
@@ -12,6 +14,7 @@ namespace PontoRefeitorio.ViewModels
         private IDispatcherTimer _countdownTimer;
         private Action _takePhotoAction;
         private CancellationTokenSource _registrationCts;
+        private MediaElement _mediaElement;
 
         [ObservableProperty]
         private bool _showInitialLayout = true;
@@ -23,7 +26,7 @@ namespace PontoRefeitorio.ViewModels
         private bool _showPopup = false;
 
         [ObservableProperty]
-        private int _countdownValue = 10;
+        private int _countdownValue = 3; // Valor padrão alterado para 3
 
         [ObservableProperty]
         private ImageSource _capturedImageSource;
@@ -50,6 +53,12 @@ namespace PontoRefeitorio.ViewModels
             _countdownTimer.Tick += OnTimerTick;
         }
 
+        public void SetMediaElement(MediaElement mediaElement)
+        {
+            _mediaElement = mediaElement;
+            _mediaElement.Source = MediaSource.FromResource("beep.mp3");
+        }
+
         public void SetTakePhotoAction(Action takePhotoAction)
         {
             _takePhotoAction = takePhotoAction;
@@ -62,7 +71,7 @@ namespace PontoRefeitorio.ViewModels
 
             ShowInitialLayout = false;
             ShowCountdown = true;
-            CountdownValue = 10;
+            CountdownValue = 3; // AJUSTE: Contagem regressiva começa em 3 segundos.
             _countdownTimer.Start();
         }
 
@@ -99,6 +108,11 @@ namespace PontoRefeitorio.ViewModels
             try
             {
                 var response = await _apiService.RegistrarPonto(_capturedImageBytes, _registrationCts.Token);
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    _mediaElement.Play();
+                });
+
 
                 if (_registrationCts.IsCancellationRequested)
                 {
@@ -123,7 +137,8 @@ namespace PontoRefeitorio.ViewModels
             finally
             {
                 IsBusy = false;
-                await Task.Delay(4000);
+                await Task.Delay(1000);
+                await Shell.Current.GoToAsync($"//{nameof(RegistroPage)}");
                 ResetState();
             }
         }
@@ -160,6 +175,9 @@ namespace PontoRefeitorio.ViewModels
             ShowCountdown = false;
             _capturedImageBytes = null;
             _countdownTimer.Stop();
+            ColaboradorNome = string.Empty;
+            ResultMessage = string.Empty;
+            CapturedImageSource = null;
         }
     }
 }

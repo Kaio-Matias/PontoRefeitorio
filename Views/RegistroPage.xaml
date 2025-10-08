@@ -6,67 +6,72 @@
              x:Class="PontoRefeitorio.Views.RegistroPage"
              Shell.NavBarIsVisible="False">
 
-    <ScrollView>
-        <Grid>
-            <Grid.Background>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#FFFFFF" Offset="0.3" />
-                    <GradientStop Color="#FFEFE0" Offset="0.4" />
-                    <GradientStop Color="#DE7913" Offset="1.9" />
-                </LinearGradientBrush>
-            </Grid.Background>
+    <Grid>
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#FFFFFF" Offset="0.3" />
+                <GradientStop Color="#FFEFE0" Offset="0.4" />
+                <GradientStop Color="#DE7913" Offset="1.9" />
+            </LinearGradientBrush>
+        </Grid.Background>
 
-            <Grid RowDefinitions="Auto, *, Auto, Auto" Padding="10">
+        <Grid RowDefinitions="Auto, *, Auto" Padding="10">
 
-                <VerticalStackLayout Grid.Row="0" HorizontalOptions="Center" Spacing="1" Margin="15,100,15,0">
-                    <Label 
-                        Text="{Binding HoraAtual}"
-                        TextColor="Black"
-                        FontSize="56"
-                        FontAttributes="Bold"
-                        HorizontalTextAlignment="Center"/>
-                    <Label 
-                        Text="{Binding DataAtual}"
-                        TextColor="Gray"
-                        FontSize="16"
-                        HorizontalOptions="Center"
-                        HorizontalTextAlignment="Center"/>
-                </VerticalStackLayout>
-
-                <VerticalStackLayout 
-                    Grid.Row="1"
-                    VerticalOptions="Center"
+            <VerticalStackLayout Grid.Row="0" HorizontalOptions="Center" Spacing="1" Padding="0,40,0,0">
+                <Label 
+                    Text="{Binding HoraAtual}"
+                    TextColor="Black"
+                    FontSize="56"
+                    FontAttributes="Bold"
+                    HorizontalTextAlignment="Center"/>
+                <Label 
+                    Text="{Binding DataAtual}"
+                    TextColor="Gray"
+                    FontSize="16"
                     HorizontalOptions="Center"
-                    Spacing="30"
-                    Margin="20,0">
+                    HorizontalTextAlignment="Center"/>
+            </VerticalStackLayout>
 
-                    <Image 
-                        Source="logo.png"
-                        WidthRequest="250"
-                        Aspect="AspectFit"
-                        Margin="0,50,0,0"
-                        Opacity="0.2"
-                        HorizontalOptions="Center"/>
+            <VerticalStackLayout 
+                Grid.Row="1"
+                VerticalOptions="Center"
+                HorizontalOptions="Center"
+                Spacing="40">
 
-                    <ImageButton 
-                        x:Name="RegistroButton"
-                        Source="biometria.png"
-                        WidthRequest="120"
-                        HeightRequest="120"
-                        Margin="0,80,0,0"
-                        BackgroundColor="Transparent"
-                        HorizontalOptions="Center"
-                        Clicked="RegistroButton_Clicked"/>
+                <Image 
+                    Source="logo.png"
+                    WidthRequest="200"
+                    Aspect="AspectFit"
+                    Opacity="0.2"
+                    HorizontalOptions="Center"/>
 
-                    <Label 
-                        Text="Toque para Registrar"
-                        TextColor="White"
-                        FontSize="18"
-                        FontAttributes="Bold"
-                        HorizontalOptions="Center"
-                        HorizontalTextAlignment="Center"/>
-                </VerticalStackLayout>
-            </Grid>
+                <Frame
+                    BackgroundColor="#DE7913"
+                    CornerRadius="20"
+                    Padding="30"
+                    HasShadow="True"
+                    BorderColor="Transparent">
+                    <VerticalStackLayout Spacing="15">
+                        <ImageButton 
+                            x:Name="RegistroButton"
+                            Source="biometria.png"
+                            WidthRequest="120"
+                            HeightRequest="120"
+                            BackgroundColor="Transparent"
+                            HorizontalOptions="Center"
+                            Clicked="RegistroButton_Clicked"/>
+
+                        <Label 
+                            Text="Toque para Registrar"
+                            TextColor="White"
+                            FontSize="18"
+                            FontAttributes="Bold"
+                            HorizontalOptions="Center"
+                            HorizontalTextAlignment="Center"/>
+                    </VerticalStackLayout>
+                </Frame>
+            </VerticalStackLayout>
+
         </Grid>
-    </ScrollView>
+    </Grid>
 </ContentPage>
