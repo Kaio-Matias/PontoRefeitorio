@@ -9,7 +9,7 @@ namespace PontoRefeitorio.Services
         private readonly HttpClient _httpClient;
 
         // URL fixa da API
-        public static string BaseUrl = "https://api.ponto-refeitorio.valedourado.com.br:8091";
+        public static string BaseUrl = "http://localhost:5114";
 
         public AuthService()
         {
