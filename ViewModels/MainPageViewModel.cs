@@ -1,183 +1,230 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using PontoRefeitorio.Models;
 using PontoRefeitorio.Services;
-using System.Diagnostics;
-using CommunityToolkit.Maui.Views;
-using PontoRefeitorio.Views;
+using System.Timers;
+using Microsoft.Maui.Dispatching;
 
 namespace PontoRefeitorio.ViewModels
 {
     public partial class MainPageViewModel : ObservableObject
     {
         private readonly ApiService _apiService;
-        private IDispatcherTimer _countdownTimer;
-        private Action _takePhotoAction;
-        private CancellationTokenSource _registrationCts;
-        private MediaElement _mediaElement;
 
-        [ObservableProperty]
-        private bool _showInitialLayout = true;
+        // Temporizadores
+        private System.Timers.Timer _timerCaptura;
+        private System.Timers.Timer _timerConfirmacao;
 
-        [ObservableProperty]
-        private bool _showCountdown = false;
+        // Ação para disparar a captura na View (Code Behind)
+        public Action RequestCaptureAction { get; set; }
 
-        [ObservableProperty]
-        private bool _showPopup = false;
+        // --- PROPRIEDADES DE ESTADO VISUAL ---
+        [ObservableProperty] private bool _showInitialLayout = true; // Tela inicial (se houver)
+        [ObservableProperty] private bool _showCountdown = false;    // Contagem 3, 2, 1
+        [ObservableProperty] private bool _showPreview = false;      // Foto capturada + Botões
+        [ObservableProperty] private bool _showResultPopup = false;  // Resultado da API
+        [ObservableProperty] private bool _isBusy = false;           // Loading
 
-        [ObservableProperty]
-        private int _countdownValue = 3; // Valor padrão alterado para 3
+        // --- DADOS PARA A UI ---
+        [ObservableProperty] private string _countdownText;          // Texto "3", "2"...
+        [ObservableProperty] private string _confirmationButtonText; // "CONFIRMAR (59s)"
+        [ObservableProperty] private ImageSource _previewImageSource; // A foto para validar (na tela de preview)
+        [ObservableProperty] private ImageSource _resultImageSource;  // A foto no resultado (no popup final)
 
-        [ObservableProperty]
-        private ImageSource _capturedImageSource;
+        // Propriedades para o Popup de Resultado
+        [ObservableProperty] private string _colaboradorNome;
+        [ObservableProperty] private string _resultMessage;
+        [ObservableProperty] private Color _resultBackgroundColor;
 
-        [ObservableProperty]
-        private string _colaboradorNome;
-
-        [ObservableProperty]
-        private string _resultMessage;
-
-        [ObservableProperty]
-        private Color _resultBackgroundColor;
-
-        [ObservableProperty]
-        private bool _isBusy = false;
-        private byte[] _capturedImageBytes;
+        // Armazena os bytes da foto temporariamente antes de enviar
+        private byte[] _fotoBytesTemporaria;
+        private int _segundosConfirmacao;
 
         public MainPageViewModel(ApiService apiService)
         {
             _apiService = apiService;
-            _registrationCts = new CancellationTokenSource();
-            _countdownTimer = Application.Current.Dispatcher.CreateTimer();
-            _countdownTimer.Interval = TimeSpan.FromSeconds(1);
-            _countdownTimer.Tick += OnTimerTick;
         }
 
-        public void SetMediaElement(MediaElement mediaElement)
-        {
-            _mediaElement = mediaElement;
-            _mediaElement.Source = MediaSource.FromResource("beep.mp3");
-        }
-
-        public void SetTakePhotoAction(Action takePhotoAction)
-        {
-            _takePhotoAction = takePhotoAction;
-        }
-
+        // 1. INICIA O PROCESSO (Chamado ao abrir a tela ou clicar no botão)
         [RelayCommand]
-        private void StartCaptureProcess()
+        public void StartCaptureProcess()
         {
-            if (IsBusy) return;
-
+            ResetState();
             ShowInitialLayout = false;
             ShowCountdown = true;
-            CountdownValue = 3; // AJUSTE: Contagem regressiva começa em 3 segundos.
-            _countdownTimer.Start();
-        }
 
-        private void OnTimerTick(object sender, EventArgs e)
-        {
-            CountdownValue--;
-            if (CountdownValue <= 0)
+            // Inicia contagem de 3 segundos para captura
+            var segundos = 3;
+            CountdownText = segundos.ToString();
+
+            _timerCaptura = new System.Timers.Timer(1000);
+            _timerCaptura.Elapsed += (s, e) =>
             {
-                _countdownTimer.Stop();
-                _takePhotoAction?.Invoke();
-            }
+                segundos--;
+
+                // Atualiza UI na MainThread
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    if (segundos > 0)
+                    {
+                        CountdownText = segundos.ToString();
+                    }
+                    else
+                    {
+                        _timerCaptura.Stop();
+                        CountdownText = "";
+                        ShowCountdown = false;
+
+                        // Solicita à View (Code Behind) que tire a foto agora
+                        RequestCaptureAction?.Invoke();
+                    }
+                });
+            };
+            _timerCaptura.Start();
         }
 
-        public async Task ProcessCapturedImage(byte[] imageBytes)
+        // 2. RECEBE A IMAGEM CAPTURADA (Chamado pelo Code Behind)
+        public void SetImageForConfirmation(byte[] fotoBytes)
         {
-            _capturedImageBytes = imageBytes;
-            CapturedImageSource = ImageSource.FromStream(() => new MemoryStream(_capturedImageBytes));
+            _fotoBytesTemporaria = fotoBytes;
 
-            ShowCountdown = false;
-            ShowPopup = true;
+            // Cria o ImageSource a partir dos bytes
+            PreviewImageSource = ImageSource.FromStream(() => new MemoryStream(fotoBytes));
 
-            await RegisterPoint();
+            // Muda o estado visual para mostrar a confirmação
+            ShowPreview = true;
+
+            // Inicia o Timer de 60s para confirmação/cancelamento
+            StartConfirmationTimer();
         }
 
-        private async Task RegisterPoint()
+        private void StartConfirmationTimer()
         {
-            if (_capturedImageBytes == null || IsBusy) return;
+            _segundosConfirmacao = 60;
+            ConfirmationButtonText = $"CONFIRMAR ({_segundosConfirmacao}s)";
 
+            _timerConfirmacao = new System.Timers.Timer(1000);
+            _timerConfirmacao.Elapsed += (s, e) =>
+            {
+                _segundosConfirmacao--;
+
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    if (_segundosConfirmacao > 0)
+                    {
+                        ConfirmationButtonText = $"CONFIRMAR ({_segundosConfirmacao}s)";
+                    }
+                    else
+                    {
+                        // Tempo esgotou: Cancela automaticamente
+                        _timerConfirmacao.Stop();
+                        CancelAndGoBack();
+                    }
+                });
+            };
+            _timerConfirmacao.Start();
+        }
+
+        // 3. ENVIA PARA API (Chamado pelo Botão Confirmar)
+        [RelayCommand]
+        public async Task ConfirmAndSend()
+        {
+            // Para o timer de 60s
+            _timerConfirmacao?.Stop();
+
+            // Atualiza UI para estado de "Enviando"
+            ShowPreview = false;
+            ShowResultPopup = true;
             IsBusy = true;
-            ResultMessage = "Registrando...";
-            ResultBackgroundColor = Colors.Transparent;
-            _registrationCts = new CancellationTokenSource();
+            ResultMessage = "Processando...";
+            ResultImageSource = PreviewImageSource; // Mantém a foto visível no popup
+            ResultBackgroundColor = Colors.Gray;
 
             try
             {
-                var response = await _apiService.RegistrarPonto(_capturedImageBytes, _registrationCts.Token);
-                await MainThread.InvokeOnMainThreadAsync(() =>
-                {
-                    _mediaElement.Play();
-                });
+                // CORREÇÃO APLICADA: Chama 'RegistrarPonto' passando CancellationToken
+                var resultado = await _apiService.RegistrarPonto(_fotoBytesTemporaria, CancellationToken.None);
 
-
-                if (_registrationCts.IsCancellationRequested)
+                if (resultado != null && resultado.Sucesso)
                 {
-                    HandleResult(false, "Registro cancelado.");
-                    await Task.Delay(2000);
+                    // SUCESSO
+                    // CORREÇÃO APLICADA: Usa 'resultado.Nome' em vez de 'NomeColaborador'
+                    ColaboradorNome = "Olá, " + (resultado.Nome ?? "Colaborador");
+                    ResultMessage = resultado.Mensagem;
+                    ResultBackgroundColor = Colors.Green;
+
+                    // Espera 3s e fecha
+                    await Task.Delay(3000);
+                    await Shell.Current.GoToAsync("..");
                 }
                 else
                 {
-                    HandleResult(response.Sucesso, response.Mensagem, response.Nome, response.FotoBase64);
+                    // FALHA (Não reconheceu ou erro de validação)
+                    ColaboradorNome = "Atenção";
+                    ResultMessage = resultado?.Mensagem ?? "Erro desconhecido";
+                    ResultBackgroundColor = Colors.Red;
+
+                    // Espera 4s e reinicia o processo de captura
+                    await Task.Delay(4000);
+                    ResetState();
+                    StartCaptureProcess();
                 }
             }
-            catch (OperationCanceledException)
+            catch (Exception)
             {
-                HandleResult(false, "Registro cancelado.");
-                await Task.Delay(2000);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Erro crítico ao registrar ponto: {ex.Message}");
-                HandleResult(false, "Falha na conexão com o servidor.");
+                // ERRO DE CONEXÃO
+                ColaboradorNome = "Erro";
+                ResultMessage = "Falha de conexão com o servidor";
+                ResultBackgroundColor = Colors.Orange;
+
+                await Task.Delay(3000);
+                await Shell.Current.GoToAsync("..");
             }
             finally
             {
                 IsBusy = false;
-                await Task.Delay(1000);
-                await Shell.Current.GoToAsync($"//{nameof(RegistroPage)}");
-                ResetState();
             }
         }
 
+        // 4. CANCELA (Chamado pelo Botão X ou Timeout)
         [RelayCommand]
-        private void Cancel()
+        public void CancelAndGoBack()
         {
-            if (IsBusy)
+            StopAllTimers();
+
+            MainThread.BeginInvokeOnMainThread(async () =>
             {
-                _registrationCts?.Cancel();
-            }
-            else
-            {
-                ResetState();
-            }
+                await Shell.Current.GoToAsync("..");
+            });
         }
 
-        private void HandleResult(bool success, string message, string nome = null, string photoBase64 = null)
+        private void StopAllTimers()
         {
-            ResultMessage = message;
-            ColaboradorNome = nome ?? string.Empty;
-            ResultBackgroundColor = success ? Colors.Green : Colors.Red;
-
-            if (success && !string.IsNullOrEmpty(photoBase64))
-            {
-                CapturedImageSource = ImageSource.FromStream(() => new MemoryStream(Convert.FromBase64String(photoBase64)));
-            }
+            _timerCaptura?.Stop();
+            _timerConfirmacao?.Stop();
         }
 
         private void ResetState()
         {
-            ShowPopup = false;
+            StopAllTimers();
             ShowInitialLayout = true;
             ShowCountdown = false;
-            _capturedImageBytes = null;
-            _countdownTimer.Stop();
-            ColaboradorNome = string.Empty;
-            ResultMessage = string.Empty;
-            CapturedImageSource = null;
+            ShowPreview = false;
+            ShowResultPopup = false;
+            IsBusy = false;
+            _fotoBytesTemporaria = null;
+        }
+
+        // Método auxiliar exigido pela interface anterior, deixado vazio se não usar som
+        public void SetMediaElement(object mediaElement) { }
+
+        // Método auxiliar exigido pelo code-behind antigo
+        public void SetTakePhotoAction(Action action) { RequestCaptureAction = action; }
+
+        // Método auxiliar exigido pelo code-behind antigo
+        public Task ProcessCapturedImage(byte[] image)
+        {
+            SetImageForConfirmation(image);
+            return Task.CompletedTask;
         }
     }
 }

@@ -17,7 +17,9 @@ namespace PontoRefeitorio.Views
             _viewModel = viewModel;
             BindingContext = _viewModel;
             _cameraProvider = cameraProvider;
-            _viewModel.SetMediaElement(mediaElement);
+
+            // Configura a ação que o ViewModel chama quando o timer de 3s acaba
+            _viewModel.RequestCaptureAction = async () => await CaptureAndProcess();
         }
 
         protected override async void OnAppearing()
@@ -26,78 +28,45 @@ namespace PontoRefeitorio.Views
             await RequestCameraPermission();
             await SetCamera();
 
-            if (BindingContext is MainPageViewModel viewModel)
+            // Inicia o fluxo automaticamente assim que a tela abre
+            if (_viewModel.StartCaptureProcessCommand.CanExecute(null))
             {
-                viewModel.SetTakePhotoAction(async () =>
-                {
-                    var photoStream = await cameraView.CaptureImage(CancellationToken.None);
-                    if (photoStream != null)
-                    {
-                        using var memoryStream = new MemoryStream();
-                        await photoStream.CopyToAsync(memoryStream);
-                        var imageBytes = memoryStream.ToArray();
-
-                        // Redimensiona e rotaciona a imagem antes de enviar para a API
-                        var processedImage = await ResizeAndRotateImage(imageBytes, 600, 800);
-                        await viewModel.ProcessCapturedImage(processedImage);
-                    }
-                });
-
-                // Inicia o processo de captura assim que a página aparece
-                if (viewModel.ShowInitialLayout)
-                {
-                    viewModel.StartCaptureProcessCommand.Execute(null);
-                }
+                _viewModel.StartCaptureProcessCommand.Execute(null);
             }
         }
 
-        /// <summary>
-        /// Redimensiona e rotaciona a imagem para o formato retrato (portrait)
-        /// </summary>
-        private async Task<byte[]> ResizeAndRotateImage(byte[] imageData, float width, float height)
+        private async Task CaptureAndProcess()
         {
-#if ANDROID
             try
             {
-                var originalImage = BitmapFactory.DecodeByteArray(imageData, 0, imageData.Length);
+                // Captura a imagem usando o Toolkit
+                var photoStream = await cameraView.CaptureImage(CancellationToken.None);
 
-                var matrix = new Matrix();
-
-                // AJUSTE: A rotação correta para a câmera frontal na maioria dos dispositivos Android
-                // é de 270 graus (ou -90) para corrigir a orientação do sensor.
-                matrix.PostRotate(270);
-
-                // Cria o bitmap rotacionado a partir da imagem original
-                var rotatedBitmap = Bitmap.CreateBitmap(originalImage, 0, 0, originalImage.Width, originalImage.Height, matrix, true);
-
-                // Redimensiona o bitmap já rotacionado
-                var scaledBitmap = Bitmap.CreateScaledBitmap(rotatedBitmap, (int)width, (int)height, true);
-
-                using (MemoryStream ms = new MemoryStream())
+                if (photoStream != null)
                 {
-                    // Comprime a imagem final para garantir um tamanho de arquivo menor
-                    scaledBitmap.Compress(Bitmap.CompressFormat.Jpeg, 85, ms); // Qualidade de 85%
+                    using var memoryStream = new MemoryStream();
+                    await photoStream.CopyToAsync(memoryStream);
+                    var imageBytes = memoryStream.ToArray();
 
-                    // Libera a memória dos bitmaps
-                    originalImage.Recycle();
-                    rotatedBitmap.Recycle();
-                    scaledBitmap.Recycle();
+                    // Processamento de rotação (Correção para Android Front Camera)
+                    var processedImage = await ResizeAndRotateImage(imageBytes, 600, 800);
 
-                    return ms.ToArray();
+                    // IMPORTANTE: Envia para o ViewModel iniciar o Timer de 60s e mostrar Preview
+                    _viewModel.SetImageForConfirmation(processedImage);
+                }
+                else
+                {
+                    // Falha silenciosa ou retry
+                    await DisplayAlert("Erro", "Não foi possível capturar a imagem.", "OK");
+                    await Navigation.PopAsync();
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Em caso de erro, retorna a imagem original
-                return imageData;
+                await DisplayAlert("Erro", $"Erro na captura: {ex.Message}", "OK");
+                await Navigation.PopAsync();
             }
-
-#else
-            // Para outras plataformas, retorna a imagem original por enquanto.
-            return await Task.FromResult(imageData);
-#endif
         }
-
 
         private async Task SetCamera()
         {
@@ -105,12 +74,9 @@ namespace PontoRefeitorio.Views
             var cameras = _cameraProvider.AvailableCameras;
             if (cameras.Count > 0)
             {
+                // Tenta pegar a câmera frontal, senão pega a primeira disponível
                 var frontCamera = cameras.FirstOrDefault(c => c.Position == CameraPosition.Front);
                 cameraView.SelectedCamera = frontCamera ?? cameras.First();
-                if (cameraView.SelectedCamera != null && cameraView.SelectedCamera.MaximumZoomFactor > 1f)
-                {
-                    cameraView.ZoomFactor = 1.5f;
-                }
             }
         }
 
@@ -123,8 +89,45 @@ namespace PontoRefeitorio.Views
             }
             if (status != PermissionStatus.Granted)
             {
-                await DisplayAlert("Permissão Necessária", "A permissão da câmara é necessária.", "OK");
+                await DisplayAlert("Erro", "Permissão de câmera necessária.", "OK");
+                await Navigation.PopAsync();
             }
+        }
+
+        /// <summary>
+        /// Redimensiona e rotaciona a imagem para o formato retrato (portrait)
+        /// </summary>
+        private async Task<byte[]> ResizeAndRotateImage(byte[] imageData, float width, float height)
+        {
+#if ANDROID
+            try
+            {
+                var originalImage = BitmapFactory.DecodeByteArray(imageData, 0, imageData.Length);
+                var matrix = new Matrix();
+
+                // Rotação padrão para câmera frontal Android (270 ou -90)
+                matrix.PostRotate(270);
+
+                var rotatedBitmap = Bitmap.CreateBitmap(originalImage, 0, 0, originalImage.Width, originalImage.Height, matrix, true);
+                var scaledBitmap = Bitmap.CreateScaledBitmap(rotatedBitmap, (int)width, (int)height, true);
+
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    scaledBitmap.Compress(Bitmap.CompressFormat.Jpeg, 85, ms);
+                    originalImage.Recycle();
+                    rotatedBitmap.Recycle();
+                    scaledBitmap.Recycle();
+                    return ms.ToArray();
+                }
+            }
+            catch
+            {
+                return imageData;
+            }
+#else
+            // Para iOS/Windows retorna a imagem original (ou implemente lógica específica se necessário)
+            return await Task.FromResult(imageData);
+#endif
         }
     }
 }
